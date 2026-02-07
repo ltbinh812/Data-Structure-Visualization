@@ -1,0 +1,22 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "vcpkg-mingw",
+            "displayName": "vcpkg MinGW",
+            "description": "Configure with vcpkg and MinGW",
+            "generator": "MinGW Makefiles",
+            "toolchainFile": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "vcpkg-mingw",
+            "configurePreset": "vcpkg-mingw"
+        }
+    ]
+}
