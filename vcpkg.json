@@ -1,5 +1,5 @@
 {
-  "name": "DataStructureVisualization",
+  "name": "data-structure-visualization",
   "version-string": "1.0.0",
   "dependencies": [ 
     "sfml",

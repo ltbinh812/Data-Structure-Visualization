@@ -9,7 +9,9 @@
             "toolchainFile": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+               "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+               "VCPKG_MANIFEST_MODE": "ON",
+               "VCPKG_HOST_TRIPLET": "x64-mingw-static"
             }
         }
     ],
