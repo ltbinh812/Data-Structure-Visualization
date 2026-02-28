@@ -14,11 +14,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(SFML REQUIRED COMPONENTS Graphics Window System Audio)
 find_package(ImGui-SFML REQUIRED)
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/headers)
 
 add_executable(data-structure-visualization
     src/main.cpp 
-    
+    src/entity.cpp
+    src/draw.cpp
+    src/handleEvent.cpp
 )
 
 target_link_libraries(data-structure-visualization PRIVATE 
