@@ -11,15 +11,21 @@
 
 using namespace std;
 
-
+sf::Time dealtaTime;
 sf::Font font1;
 sf::Font font2;
+sf::Font font3;
 Style style1; //logo
 Style style2; //button text 1
 Style style3; //button text 2
+Style style4; //node text
+Style style5; //log
+
+AppState appState = AppState::MAIN_MENU;
+
 
 int main() {
-
+    srand(time(0));
     sf::RenderWindow window = sf::RenderWindow(sf::VideoMode({WINDOW_WIDTH, WINDOW_HEIGHT}), "Visualizing Stack");
     window.setFramerateLimit(60);
 
@@ -29,7 +35,7 @@ int main() {
     }
     sf::View cameraView = window.getDefaultView();
     
-    if (!font1.openFromFile("assets/PTC55f.ttf")) {
+    if (!font1.openFromFile("assets/PTC55F.ttf")) {
         cerr << "Failed to load font1" << endl;
         return -1;
     }
@@ -37,10 +43,16 @@ int main() {
         cerr << "Failed to load font2" << endl;
         return -1;
     }
+    if (!font3.openFromFile("assets/PTC55F.ttf")) {
+        cerr << "Failed to load font3" << endl;
+        return -1;
+    }
     style1 = Style(font2, 120, sf::Color::Black); //logo
     style2 = Style(font2, 35, sf::Color::Black); //button text 1
     style3 = Style(font1, 20, sf::Color::White); //button text 2
-    
+    style4 = Style(font1, 20, sf::Color::Black); //node text
+    style5 = Style(font3, 25, sf::Color(225, 28, 28, 220)); // log
+
     sf::Texture LinkedListTexture;
     if (!LinkedListTexture.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load LinkedListTexture" << endl;
@@ -78,7 +90,7 @@ int main() {
     }
 
 
-    Card card1(Test1, "Double linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT / 2.f));
+    Card card1(Test1, "Singly linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT / 2.f));
     Card card2(Test2, "Circular linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f));
     Card card3(Test3, "Stack", "Stack", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT / 2.f));
     Card card4(Test4, "Queue", "Queue", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
@@ -127,33 +139,38 @@ int main() {
         card6
     };
 
-    AppState appState = AppState::MAIN_MENU;
     float scrollY = 0.f;
     sf::Clock deltaClock;
-    sf::Time dealtaTime;
     while (window.isOpen()) {
         dealtaTime = deltaClock.restart();
 
         while (const auto event = window.pollEvent()) {
-            ImGui::SFML::ProcessEvent(window, *event);
 
             if (event->is<sf::Event::Closed>()) {
                 window.close();
                 break;
             }
 
-            if (event->is<sf::Event::MouseWheelScrolled>()) {
-                float step = (event->getIf<sf::Event::MouseWheelScrolled>()->delta > 0 ? -1 : 1) * scrollSpeed; 
-                scrollY += step;
-                if(scrollY < 0.f) scrollY = 0.f;
-                else if(scrollY > MAX_SCROLL_Y) scrollY = MAX_SCROLL_Y;
-                else cameraView.move({0.f, step});
-                // cout << "Scroll Y: " << scrollY << endl;
-                break;
-            }
 
             if(appState == AppState::MAIN_MENU){
+                if (event->is<sf::Event::MouseWheelScrolled>()) {
+                    float step = (event->getIf<sf::Event::MouseWheelScrolled>()->delta > 0 ? -1 : 1) * scrollSpeed; 
+                    scrollY += step;
+                    if(scrollY < 0.f) scrollY = 0.f;
+                    else if(scrollY > MAX_SCROLL_Y) scrollY = MAX_SCROLL_Y;
+                    else cameraView.move({0.f, step});
+                    // cout << "Scroll Y: " << scrollY << endl;
+                    break;
+                }
                 handleMainMenuEvents(*event, window, cameraView, MainMenu_Cards);
+            }
+
+
+            else if(appState == AppState::VISUALIZATION1){
+                window.setView(window.getDefaultView());
+                ImGui::SFML::ProcessEvent(window, *event);
+
+                handleVisualization1Events(*event, window, cameraView);
             }
         }
 
@@ -167,29 +184,21 @@ int main() {
             drawMainMenu(window, MainMenu_Texts, MainMenu_Buttons, MainMenu_Images, MainMenu_Cards);
         }
         
+        if(appState == AppState::VISUALIZATION1){
+            window.clear(sf::Color(255, 255, 255)); // Màu nền trắng cho phần visualization
+            ImGui::SFML::Update(window, dealtaTime);
+
+            drawVisualization1(window);
+            ImGui::SFML::Render(window);
+        }
   
         
 
 
 
-        // ImGui 
-        window.setView(window.getDefaultView());
-        ImGui::SFML::Update(window, dealtaTime);
 
 
-        ImGui::Begin("Code Trace 1");
-        ImGui::Text("1. Khởi tạo cửa sổ và ImGui");
-        ImGui::Text("2. Vòng lặp sự kiện và xử lý cuộn chuột");
-        ImGui::Text("3. Vẽ các phần tử Stack và giao diện ImGui");
-        ImGui::End();
-        ImGui::Begin("Code Trace 2");
-        ImGui::Text("1. Khởi tạo cửa sổ và ImGui");
-        ImGui::Text("2. Vòng lặp sự kiện và xử lý cuộn chuột");
-        ImGui::Text("3. Vẽ các phần tử Stack và giao diện ImGui");
-        ImGui::End();
 
-
-        ImGui::SFML::Render(window);
         window.display();    
     }
 

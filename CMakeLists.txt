@@ -21,6 +21,8 @@ add_executable(data-structure-visualization
     src/entity.cpp
     src/draw.cpp
     src/handleEvent.cpp
+    src/visualization1.cpp
+    src/performVisualization1.cpp
 )
 
 target_link_libraries(data-structure-visualization PRIVATE 

@@ -1,12 +1,39 @@
 #include <iostream>
 #include "handleEvent.h"
+#include "main.h"
+#include "draw.h"
 
 
-
-
-void handleMainMenuEvents(sf::Event event, sf::RenderWindow& window, sf::View& cameraView, std::vector<Card>& cards){
+void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView, std::vector<Card>& cards){
     for(auto &card: cards){
         card.handleEvent(event, window, cameraView);
     }
+
+    if(cards[0].clicked(event, window, cameraView)){
+        o = INITIALIZE;
+        appState = AppState::VISUALIZATION1;
+    }
+    if(cards[1].clicked(event, window, cameraView)){
+        o = INITIALIZE;
+        appState = AppState::VISUALIZATION2;
+    }
+    if(cards[2].clicked(event, window, cameraView)){
+        o = INITIALIZE;
+        appState = AppState::VISUALIZATION3;
+    }
+    if(cards[3].clicked(event, window, cameraView)){
+        o = INITIALIZE;
+        appState = AppState::VISUALIZATION4;
+    }
+    if(cards[4].clicked(event, window, cameraView)){
+        o = INITIALIZE;
+        appState = AppState::VISUALIZATION5;
+    }
+    if(cards[5].clicked(event, window, cameraView)){
+        o = INITIALIZE;
+        appState = AppState::VISUALIZATION6;
+    }
 }
 
+void handleVisualization1Events(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView){
+}
