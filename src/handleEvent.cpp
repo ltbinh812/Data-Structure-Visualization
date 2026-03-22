@@ -2,7 +2,7 @@
 #include "handleEvent.h"
 #include "main.h"
 #include "draw.h"
-
+#include "visualization1.h"
 
 void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView, std::vector<Card>& cards){
     for(auto &card: cards){
@@ -10,7 +10,7 @@ void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::
     }
 
     if(cards[0].clicked(event, window, cameraView)){
-        o = INITIALIZE;
+        initStatus1();
         appState = AppState::VISUALIZATION1;
     }
     if(cards[1].clicked(event, window, cameraView)){
@@ -35,5 +35,3 @@ void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::
     }
 }
 
-void handleVisualization1Events(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView){
-}

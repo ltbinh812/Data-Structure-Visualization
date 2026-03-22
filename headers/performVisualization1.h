@@ -4,19 +4,19 @@
 #include <string>
 #include "entity.h"
 
-enum class StepType { NONE, NEW_NODE, INSERT, DELETE_1, DELETE_2, TRAVERSE, UPDATE, SEARCH_1, SEARCH_2, FINISH, HIGHLIGHT };
+enum class StepTypeV1 { NONE, NEW_NODE, INSERT, DELETE_1, DELETE_2, TRAVERSE, UPDATE, SEARCH_1, SEARCH_2, FINISH, HIGHLIGHT };
 
-struct AnimationStep {
+struct AnimationStepV1 {
     int codeLine;         // Dòng code highlight tương ứng
     int focusNodeIdx;     // Node đang được xét tới 
     int focusNodeVal;     // Giá trị node đang được xét tới
     std::string log;      // Lời nhắn hiện trên UI
-    StepType type;
+    StepTypeV1 type;
 };
 
-extern int currentStepIdx;
-extern std::vector<AnimationStep> script;
-extern Block* newNode; // Node chờ thực hiện (dùng cho insert)
-extern float dt;
+extern std::vector<AnimationStepV1> scriptV1;
+extern int currentStepIdxV1;
+extern Block* newNode; 
 
-void performInsertVisualization1(sf::RenderWindow& window);
+bool checkFinishedV1();
+void performVisualization1(sf::RenderWindow& window);

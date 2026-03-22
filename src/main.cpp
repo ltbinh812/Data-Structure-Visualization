@@ -20,6 +20,7 @@ Style style2; //button text 1
 Style style3; //button text 2
 Style style4; //node text
 Style style5; //log
+Style style6; //Idx text
 
 AppState appState = AppState::MAIN_MENU;
 
@@ -50,9 +51,9 @@ int main() {
     style1 = Style(font2, 120, sf::Color::Black); //logo
     style2 = Style(font2, 35, sf::Color::Black); //button text 1
     style3 = Style(font1, 20, sf::Color::White); //button text 2
-    style4 = Style(font1, 20, sf::Color::Black); //node text
+    style4 = Style(font2, 25, sf::Color::Black); //node text
     style5 = Style(font3, 25, sf::Color(225, 28, 28, 220)); // log
-
+    style6 = Style(font2, 30, sf::Color::Red); //Idx text
     sf::Texture LinkedListTexture;
     if (!LinkedListTexture.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load LinkedListTexture" << endl;
@@ -91,7 +92,7 @@ int main() {
 
 
     Card card1(Test1, "Singly linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT / 2.f));
-    Card card2(Test2, "Circular linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f));
+    Card card2(Test2, "Heap", "Tree", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f));
     Card card3(Test3, "Stack", "Stack", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT / 2.f));
     Card card4(Test4, "Queue", "Queue", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
     Card card5(Test5, "Binary tree", "Tree", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
@@ -170,7 +171,12 @@ int main() {
                 window.setView(window.getDefaultView());
                 ImGui::SFML::ProcessEvent(window, *event);
 
-                handleVisualization1Events(*event, window, cameraView);
+            }
+
+            else if(appState == AppState::VISUALIZATION2){
+                window.setView(window.getDefaultView());
+                ImGui::SFML::ProcessEvent(window, *event);
+
             }
         }
 
@@ -192,7 +198,13 @@ int main() {
             ImGui::SFML::Render(window);
         }
   
-        
+        if(appState == AppState::VISUALIZATION2){
+            window.clear(sf::Color(255, 255, 255)); // Màu nền trắng cho phần visualization
+            ImGui::SFML::Update(window, dealtaTime);
+
+            drawVisualization2(window);
+            ImGui::SFML::Render(window);
+        }
 
 
 

@@ -6,4 +6,3 @@
 #include "entity.h"
 
 void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView, std::vector<Card>& cards);
-void handleVisualization1Events(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView);

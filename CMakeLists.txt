@@ -23,6 +23,8 @@ add_executable(data-structure-visualization
     src/handleEvent.cpp
     src/visualization1.cpp
     src/performVisualization1.cpp
+    src/visualization2.cpp
+    src/performVisualization2.cpp
 )
 
 target_link_libraries(data-structure-visualization PRIVATE 

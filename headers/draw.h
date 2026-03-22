@@ -11,12 +11,17 @@ enum OperationType{
     DELETE,
     UPDATE,
     SEARCH,
+    GET_TOP,
     GRAPH
 };
 extern OperationType o;
 extern Block* Log;
 extern float delayLog;
+extern Block* newNode;
 
 void setLog(std::string text, sf::Color color = sf::Color(244, 164, 96, 230));
+void drawLog(sf::RenderWindow& window);
+bool checkMove(Block *Node);
 void drawMainMenu(sf::RenderWindow& window, std::vector<Text>& texts, std::vector<Block>& buttons, std::vector<Image>& images, std::vector<Card>& cards);
 void drawVisualization1(sf::RenderWindow& window);
+void drawVisualization2(sf::RenderWindow& window);
