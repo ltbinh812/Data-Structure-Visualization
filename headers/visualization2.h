@@ -10,6 +10,8 @@ extern std::vector<Block*> heapList;
 extern float dtV2;
 extern bool isMaxHeap;
 
+void initStatus2();
+
 sf::Vector2f calculatePos(int i, int n);
 
 bool checkNextStepV2(float limitTime);

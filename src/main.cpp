@@ -60,32 +60,32 @@ int main() {
         return -1;
     }
     sf::Texture Test1;
-    if (!Test1.loadFromFile("assets/SPOILER_Screenshot_762.png")) {
+    if (!Test1.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load Test1" << endl;
         return -1;
     }
     sf::Texture Test2;
-    if (!Test2.loadFromFile("assets/SPOILER_Screenshot_763.png")) {
+    if (!Test2.loadFromFile("assets/MinHeapAndMaxHeap1.png")) {
         cerr << "Failed to load Test2" << endl;
         return -1;
     }
     sf::Texture Test3;
-    if (!Test3.loadFromFile("assets/SPOILER_Screenshot_764.png")) {
+    if (!Test3.loadFromFile("assets/AVL-Tree-in-Javascript.png")) {
         cerr << "Failed to load Test3" << endl;
         return -1;
     }
     sf::Texture Test4;
-    if (!Test4.loadFromFile("assets/SPOILER_Screenshot_765.png")) {
+    if (!Test4.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load Test4" << endl;
         return -1;
     }
     sf::Texture Test5;
-    if (!Test5.loadFromFile("assets/SPOILER_Screenshot_766.png")) {
+    if (!Test5.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load Test5" << endl;
         return -1;
     }
     sf::Texture Test6;
-    if (!Test6.loadFromFile("assets/SPOILER_Screenshot_767.png")) {
+    if (!Test6.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load Test6" << endl;
         return -1;
     }
@@ -93,16 +93,16 @@ int main() {
 
     Card card1(Test1, "Singly linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT / 2.f));
     Card card2(Test2, "Heap", "Tree", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f));
-    Card card3(Test3, "Stack", "Stack", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT / 2.f));
+    Card card3(Test3, "ALV Tree", "Tree", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT / 2.f));
     Card card4(Test4, "Queue", "Queue", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
     Card card5(Test5, "Binary tree", "Tree", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
     Card card6(Test6, "Graph", "Graph", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
 
-    Text test("*Hinh anh chi mang tinh chat minh hoa=))", style2);
+    Text test("*Hinh anh chi mang tinh chat minh hoa=)*", style2);
     test.setPosition(WINDOW_WIDTH / 2.f, 200.f);
 
     vector<Text> MainMenu_Texts{
-        Text("Data Structure Visualization", style1),
+        Text("Data Structure Visualizer", style1),
         test
         // card1Text,
         // card1Tab,
@@ -178,6 +178,25 @@ int main() {
                 ImGui::SFML::ProcessEvent(window, *event);
 
             }
+            else if(appState == AppState::VISUALIZATION3){
+                window.setView(window.getDefaultView());
+                ImGui::SFML::ProcessEvent(window, *event);
+
+            }
+            else if(appState == AppState::VISUALIZATION4){
+                window.setView(window.getDefaultView());
+                ImGui::SFML::ProcessEvent(window, *event);
+
+            }
+            else if(appState == AppState::VISUALIZATION5){
+                window.setView(window.getDefaultView());
+                ImGui::SFML::ProcessEvent(window, *event);
+
+            }
+            else if(appState == AppState::VISUALIZATION6){
+                window.setView(window.getDefaultView());
+                ImGui::SFML::ProcessEvent(window, *event);
+            }
         }
 
         // SFML
@@ -206,6 +225,13 @@ int main() {
             ImGui::SFML::Render(window);
         }
 
+        if(appState == AppState::VISUALIZATION3){
+            window.clear(sf::Color(255, 255, 255)); // Màu nền trắng cho phần visualization
+            ImGui::SFML::Update(window, dealtaTime);
+
+            drawVisualization3(window);
+            ImGui::SFML::Render(window);
+        }
 
 
 

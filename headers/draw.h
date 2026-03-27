@@ -19,9 +19,10 @@ extern Block* Log;
 extern float delayLog;
 extern Block* newNode;
 
-void setLog(std::string text, sf::Color color = sf::Color(244, 164, 96, 230));
+void setLog(std::string text, sf::Color color = sf::Color(244, 164, 96, 230), sf::Color textColor = sf::Color::Black);
 void drawLog(sf::RenderWindow& window);
 bool checkMove(Block *Node);
 void drawMainMenu(sf::RenderWindow& window, std::vector<Text>& texts, std::vector<Block>& buttons, std::vector<Image>& images, std::vector<Card>& cards);
 void drawVisualization1(sf::RenderWindow& window);
 void drawVisualization2(sf::RenderWindow& window);
+void drawVisualization3(sf::RenderWindow& window);

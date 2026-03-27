@@ -10,15 +10,17 @@
 #include "performVisualization1.h"
 #include "visualization2.h"
 #include "performVisualization2.h"
-
+#include "visualization3.h"
+#include "performVisualization3.h"
 Block* Log = nullptr;
 float delayLog = 0;
 OperationType o = INITIALIZE;
 Block* newNode = nullptr;
 
-void setLog(std::string text, sf::Color color){
+void setLog(std::string text, sf::Color color, sf::Color textColor) {
     Log = new Block(RECTANGLE, 500.f, 40.f, text);
     Log -> setFillColor(color);
+    Log -> setFillColorText(textColor);
     Log -> currentPosition = {-300.f, WINDOW_HEIGHT - 400.f};
     Log -> targetPosition = {300.f, WINDOW_HEIGHT - 400.f};
     Log -> setPosition(Log->currentPosition);
@@ -178,7 +180,7 @@ void drawVisualization2(sf::RenderWindow& window){
 
 
             performVisualization2(window);
-            
+
             if(checkFinishedV2()){
                 drawHeapList(window);
             }
@@ -188,4 +190,56 @@ void drawVisualization2(sf::RenderWindow& window){
     ImGui::End();
 
 
+}
+
+
+void drawVisualization3(sf::RenderWindow& window){
+    sf::Vector2u windowSize = window.getSize();
+    float panelHeight = 350.f;
+    ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - panelHeight));
+    ImGui::SetNextWindowSize(ImVec2(windowSize.x, panelHeight));
+    ImGui::GetIO().FontGlobalScale = 2.0f;
+
+
+    drawLog(window);
+
+    ImGui::Begin("ControlPanel", nullptr, 
+        ImGuiWindowFlags_NoMove | 
+        ImGuiWindowFlags_NoResize | 
+        ImGuiWindowFlags_NoCollapse | 
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoBringToFrontOnFocus); 
+
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.4f, 0.7f, 1.0f));
+
+
+        // Cot 1
+        bool temp = checkFinishedV3();
+        ImGui::BeginChild("Operations", ImVec2(175, 0), true);
+            if (ImGui::Selectable("Initialize", o == INITIALIZE)) { if(temp) o = INITIALIZE; }
+            if (ImGui::Selectable("Insert(v)", o == ADD))    { if(temp) o = ADD;   }
+            if (ImGui::Selectable("Remove(v)", o == DELETE))    { if(temp) o = DELETE; }
+            if (ImGui::Selectable("Search(v)", o == SEARCH))    { if(temp) o = SEARCH; }
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+
+        // Cot 2
+        ImGui::BeginGroup();
+            
+            if (o == INITIALIZE) initVisualization3(window);
+            else if(o == ADD) insertVisualization3(window);
+            else if(o == DELETE) deleteVisualization3(window);
+            else if(o == SEARCH) searchVisualization3(window);
+
+
+            performVisualization3(window);
+            
+            if(checkFinishedV3()){
+                drawAVLTree(rootV3, window);
+            }
+            ImGui::EndGroup();
+
+        ImGui::PopStyleColor();
+    ImGui::End();
 }

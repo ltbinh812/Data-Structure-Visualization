@@ -25,6 +25,8 @@ add_executable(data-structure-visualization
     src/performVisualization1.cpp
     src/visualization2.cpp
     src/performVisualization2.cpp
+    src/visualization3.cpp
+    src/performVisualization3.cpp
 )
 
 target_link_libraries(data-structure-visualization PRIVATE 

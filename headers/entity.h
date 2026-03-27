@@ -56,6 +56,10 @@ public:
     sf::Vector2f targetPosition;
     float moveSpeed = 200.f;
     bool isHovered = false;
+    Block* pRight = nullptr;
+    Block* pLeft = nullptr;
+    int height;
+
     Block() = default;
     Block(ShapeType shape, float radius, sf::Color color);
     Block(ShapeType shape, float width, float height, sf::Color color);

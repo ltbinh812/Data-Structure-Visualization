@@ -29,12 +29,15 @@ void initStatus1(){
     // performVisualization1.cpp
     scriptV1.clear();
     currentStepIdxV1 = -1;
-    newNode = nullptr;
 
     // draw.cpp
     Log = nullptr;
     delayLog = 0;
     o = INITIALIZE;
+    if(newNode){
+        delete newNode;
+        newNode = nullptr;
+    }
 }
 
 void initVisualization1(sf::RenderWindow& window) {
@@ -88,6 +91,17 @@ void initVisualization1(sf::RenderWindow& window) {
             }
             scriptV1.push_back({3, (int)newElements.size() - 1, -1, "", StepTypeV1::FINISH});
         }
+    }
+    ImGui::Spacing();
+    ImGui::Text("Clear the linked list:");
+    ImGui::SameLine();
+    if (checkFinishedV1() && ImGui::Button("Clear", ImVec2(100.0f, 30))) {
+        for(auto node:linkedList){
+            delete node;
+        }
+        linkedList.clear();
+        scriptV1.clear();
+        currentStepIdxV1 = 0;
     }
 }
 
@@ -315,8 +329,7 @@ void searchVisualization1(sf::RenderWindow& window) {
 
 
     if(checkFinishedV1() && ImGui::Button("Random", ImVec2(100.0f, 30)) && linkedList.size() > 0) {
-        int value = rand() % 100;
-        std::string data = std::to_string(value);
+        std::string data = linkedList[rand() % linkedList.size()]->getLabel();
         strcpy(inputBuffer, data.c_str());
         temp = true;
     }
@@ -359,7 +372,7 @@ bool checkNextStepV1(float limitTime) {
     }
     // std::cout << isWaitingV1 << std::endl;
     if(isWaitingV1){ 
-        delayTimerV1 += dealtaTime.asSeconds() * dtV1; 
+        delayTimerV1 += dealtaTime.asSeconds(); 
         std::cout << "**********************************" << delayTimerV1 << "\n";
         if (delayTimerV1 >= limitTime) { 
             isWaitingV1 = false;

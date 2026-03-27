@@ -12,6 +12,33 @@ std::vector<Block*> heapList;
 bool isWaitingV2 = false;
 float delayTimerV2 = 0;
 bool isMaxHeap = true;
+int root;
+
+void initStatus2() {
+    // visualization2.cpp
+    dtV2 = 1.0f;
+    for(auto node:heapList) {
+        delete node;
+    }
+    heapList.clear();
+    isWaitingV2 = false;
+    delayTimerV2 = 0;
+    isMaxHeap = true;
+
+    // performVisualization2.cpp
+    currentStepIdxV2 = -1;
+    scriptV2.clear();
+    root = -1;
+
+    // draw.cpp
+    Log = nullptr;
+    delayLog = 0;
+    o = INITIALIZE;
+    if(newNode) {
+        delete newNode;
+        newNode = nullptr;
+    }
+}
 
 sf::Vector2f calculatePos(int i, int n) {
     // 1. Xác định vị trí logic
@@ -38,7 +65,6 @@ sf::Vector2f calculatePos(int i, int n) {
 }
 
 
-int root;
 void siftDownScriptV2(std::vector<Block*>& heapList, int i, int n) {
     root = i;    
     int swapIdx = i;
@@ -198,6 +224,18 @@ void initVisualization2(sf::RenderWindow& window) {
             scriptV2.push_back({-1, -1, -1, "Đã tạo xong Max Heap!", StepTypeV2::FINISH}); 
         }
     }
+
+    ImGui::Spacing();
+    ImGui::Text("Clear the heap: ");
+    ImGui::SameLine();
+    if (checkFinishedV2() && ImGui::Button("Clear", ImVec2(100.0f, 30))) {
+        for(auto node:heapList){
+            delete node;
+        }
+        heapList.clear();
+        scriptV2.clear();
+        currentStepIdxV2 = 0;
+    }
 }
 
 void insertVisualization2(sf::RenderWindow& window){
@@ -220,6 +258,7 @@ void insertVisualization2(sf::RenderWindow& window){
     ImGui::SameLine();
     if(checkFinishedV2() && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))){
         std::string data(inputBuffer);
+        if(data == "") return;
         int value = std::stoi(data);
         scriptV2.clear();
         currentStepIdxV2 = 0;
@@ -342,7 +381,7 @@ bool checkNextStepV2(float limitTime) {
     std::cout << "?3\n";
     // std::cout << isWaitingV2 << std::endl;
     if(isWaitingV2){ 
-        delayTimerV2 += dealtaTime.asSeconds() * dtV2; 
+        delayTimerV2 += dealtaTime.asSeconds(); 
         std::cout << "**********************************" << delayTimerV2 << "\n";
         if (delayTimerV2 >= limitTime) { 
             isWaitingV2 = false;
