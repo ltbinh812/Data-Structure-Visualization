@@ -11,21 +11,38 @@ float delayTimerV4 = 0;
 float dtV4 = 1.0f;
 Block* rootV4 = nullptr;
 
+void resetTrie(Block* node) {
+    if(node == nullptr) return;
+    for(auto& pair : node -> children){
+        resetTrie(pair.second);
+    }
+    delete node;
+}
+
 void initStatus4(){
     // visualization4.cpp
-    std::cout << ">>>>>>>\n";
+    isWaitingV4 = false;
+    delayTimerV4 = 0;
+    dtV4 = 1.0f;
+
+    resetTrie(rootV4);
     rootV4 = new Block(ShapeType::CIRCLE, 30.f, "root");
     rootV4 -> targetPosition = sf::Vector2f(WINDOW_WIDTH / 2, 300.f);
     rootV4 -> currentPosition = rootV4 -> targetPosition;
     rootV4 -> setPosition(rootV4 -> currentPosition);
 
-    if(rootV4) std::cout << "root created\n";
-    else std::cout << "root not created\n";
     // performVisualization4.cpp
-
+    scriptV4.clear();
+    currentStepIdxV4 = 0;
 
     // draw.cpp
     o = INITIALIZE;
+    Log = nullptr;
+    delayLog = 0;
+    if(newNode){
+        delete newNode;
+        newNode = nullptr;
+    }
 }
 
 float calculateTrieGapWidth(Block* node) {
@@ -98,14 +115,8 @@ void initVisualization4(sf::RenderWindow& window) {
         }
         scriptV4.clear();
         currentStepIdxV4 = 0;
-        auto resetTrie = [](auto self, Block* node) -> void {
-            if(node == nullptr) return;
-            for(auto& pair : node -> children){
-                self(self, pair.second);
-            }
-            delete node;
-        };
-        resetTrie(resetTrie, rootV4);
+
+        resetTrie(rootV4);
         rootV4 = new Block(ShapeType::CIRCLE, 30.f, "root");
         rootV4 -> targetPosition = sf::Vector2f(WINDOW_WIDTH / 2, 300.f);
         rootV4 -> currentPosition = rootV4 -> targetPosition;
