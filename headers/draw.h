@@ -26,3 +26,6 @@ void drawMainMenu(sf::RenderWindow& window, std::vector<Text>& texts, std::vecto
 void drawVisualization1(sf::RenderWindow& window);
 void drawVisualization2(sf::RenderWindow& window);
 void drawVisualization3(sf::RenderWindow& window);
+void drawVisualization4(sf::RenderWindow& window);
+// void drawVisualization5(sf::RenderWindow& window);
+// void drawVisualization6(sf::RenderWindow& window);

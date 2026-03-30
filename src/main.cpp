@@ -233,6 +233,13 @@ int main() {
             ImGui::SFML::Render(window);
         }
 
+        if(appState == AppState::VISUALIZATION4){
+            window.clear(sf::Color(255, 255, 255)); // Màu nền trắng cho phần visualization
+            ImGui::SFML::Update(window, dealtaTime);
+
+            drawVisualization4(window);
+            ImGui::SFML::Render(window);
+        }
 
 
 

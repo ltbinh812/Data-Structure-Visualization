@@ -2,6 +2,7 @@
 #include <iostream>
 #include <optional>
 #include <SFML/Graphics.hpp>
+#include <map>
 
 
 enum ShapeType {
@@ -58,7 +59,10 @@ public:
     bool isHovered = false;
     Block* pRight = nullptr;
     Block* pLeft = nullptr;
-    int height;
+    std::map<char, Block*> children;
+    int height = 0;
+    int value = 0;
+    int gapWidth = 0;
 
     Block() = default;
     Block(ShapeType shape, float radius, sf::Color color);

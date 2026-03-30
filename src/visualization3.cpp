@@ -9,7 +9,7 @@
 #include "draw.h"
 
 //AVL tree
-float dtV3 = 7.0f;
+float dtV3 = 1.0f;
 Block *rootV3 = nullptr;
 
 bool isWaitingV3 = false;
@@ -18,19 +18,41 @@ float delayTimerV3 = 0;
 
 Block* targetDeleteNodeV3 = nullptr;
 
+void clearALVTree(Block* node) {
+    if (node == nullptr) return;
+    clearALVTree(node->pLeft);
+    clearALVTree(node->pRight);
+    delete node;
+}
+
+
 void initStatus3() {
+    // visualization3.cpp
+    dtV3 = 1.0f;
+    clearALVTree(rootV3);
+    rootV3 = nullptr;
+    isWaitingV3 = false;
+    delayTimerV3 = 0;
+    targetDeleteNodeV3 = nullptr;
+
+    // performVisualization3.cpp
+    scriptV3.clear();
+    currentStepIdxV3 = -1;
+
+    // draw.cpp
+    Log = nullptr;
+    delayLog = 0;
+    o = INITIALIZE;
+    if (newNode) {
+        delete newNode;
+        newNode = nullptr;
+    }
 }
 
 int getHeight(Block* node) {
     if (node == nullptr) return 0;
     return 1 + std::max(getHeight(node->pLeft), getHeight(node->pRight));
 }
-
-// int getHeightBranch(Block* node, int value) {
-//     if(node == nullptr) return 1;
-//     if(value < std::stoi(node->getLabel())) return 1 + getHeightBranch(node->pLeft, value);
-//     else return 1 + getHeightBranch(node->pRight, value);
-// }
 
 void calculateAllPos(Block* node, int heightTree, int level,  float x, float y) {
     std::cout << ".\n" << std::endl;
@@ -54,12 +76,6 @@ void calculateAllPos(Block* node, int heightTree, int level,  float x, float y) 
     std::cout << ".\n";
 }
 
-void clearALVTree(Block* node) {
-    if (node == nullptr) return;
-    clearALVTree(node->pLeft);
-    clearALVTree(node->pRight);
-    delete node;
-}
 
 struct cloneNode{
     int value;
@@ -572,10 +588,22 @@ void deleteVisualization3(sf::RenderWindow& window){
     ImGui::SameLine();
 
     if(checkFinishedV3() && ImGui::Button("Random", ImVec2(100.0f, 30))) {
-        int n = rand() % 100;
-        std::string data = std::to_string(n);
-        strcpy(valueBuffer, data.c_str());
-        temp = true;
+        std::vector<std::string> vec;
+        auto get = [&](auto self, Block* node, std::vector<std::string> &vec) -> void {
+            if(node == nullptr) return;
+            std::cout << node -> getLabel() << std::endl;
+            self(self, node -> pLeft, vec);
+            vec.push_back(node -> getLabel());
+            self(self, node -> pRight, vec);
+            return;
+        };
+        get(get, rootV3, vec);
+        if(!vec.empty()){
+            std::string value = vec[rand() % vec.size()];
+            strcpy(valueBuffer, value.c_str());
+            temp = true;
+        }
+
     }
     ImGui::SameLine();
     if(checkFinishedV3() && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
@@ -635,10 +663,10 @@ void deleteVisualization3(sf::RenderWindow& window){
 }
 
 
-bool DFScheckMove(Block* node) {
+bool DFScheckMoveV3(Block* node) {
     if(!node) return false;
     if(checkMove(node)) return true;
-    return DFScheckMove(node -> pLeft) || DFScheckMove(node -> pRight);
+    return DFScheckMoveV3(node -> pLeft) || DFScheckMoveV3(node -> pRight);
 }
 
 bool checkNextStepV3(float limitTime) {
@@ -647,7 +675,7 @@ bool checkNextStepV3(float limitTime) {
     if (newNode && checkMove(newNode)) isWaitingV3 = false;
 
     std::cout << "checkNextStepV3 2\n";
-    if(DFScheckMove(rootV3)) isWaitingV3 = false;
+    if(DFScheckMoveV3(rootV3)) isWaitingV3 = false;
     std::cout << "checkNextStepV3 3\n";
 
     if(isWaitingV3){ 
