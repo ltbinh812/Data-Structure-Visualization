@@ -9,13 +9,16 @@
 extern std::vector<Block*> heapList;
 extern float dtV2;
 extern bool isMaxHeap;
+extern std::vector<Block*> garbageV2;
+
+
 
 void initStatus2();
 
 sf::Vector2f calculatePos(int i, int n);
 
-bool checkNextStepV2(float limitTime);
-void drawHeapList(sf::RenderWindow& window);
+bool checkNextStepV2(float limitTime, Block* newNode, std::vector<Block*>& heapList);
+void drawHeapList(sf::RenderWindow& window, std::vector<Block*>& heapList);
 
 void initVisualization2(sf::RenderWindow& window);
 void insertVisualization2(sf::RenderWindow& window);

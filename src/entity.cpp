@@ -115,6 +115,10 @@ Block::Block(ShapeType shape, float radius, std::string label){
     initText(label, style4);
 }
 
+void Block::setText(std::string label){
+    initText(label, style4);
+}
+
 void Block::setoutline(int thickness, sf::Color color){
     if (shape == CIRCLE){
         circle.setOutlineThickness(thickness);
@@ -148,6 +152,13 @@ void Block::setPosition(sf::Vector2f pos){
 void Block::setSize(sf::Vector2f rect){
     rectangle.setSize(rect);
     rectangle.setOrigin({rect.x / 2.f, rect.y / 2.f});
+}
+
+std::pair<float, float> Block::getPosition(){
+    if(shape == CIRCLE) return {circle.getPosition().x, circle.getPosition().y};
+    else if(shape == RECTANGLE) return {rectangle.getPosition().x, rectangle.getPosition().y};
+    else if(shape == NODE) return {circle.getPosition().x, circle.getPosition().y};
+    return {0.f, 0.f};
 }
 
 sf::Vector2f Block::center(){
@@ -217,21 +228,26 @@ void Block::setFillColorText(sf::Color color){
     if(textLabel) textLabel->setFillColor(color);
 }
 
-void Block::move(float dt){
-    sf::Vector2f direction = targetPosition - currentPosition;
-    float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-
-    if (distance > eps) {
-        sf::Vector2f normalizedDirection = direction / distance;
-        sf::Vector2f movement = normalizedDirection * moveSpeed * dealtaTime.asSeconds() * dt;
-
-        if (std::sqrt(movement.x * movement.x + movement.y * movement.y) > distance) {
-            currentPosition = targetPosition;
-        } else {
-            currentPosition += movement;
-        }
-
+void Block::move(float dt, bool isStepByStep){
+    if(isStepByStep){
+        currentPosition = targetPosition;
         setPosition(currentPosition);
+    }
+    else{
+        sf::Vector2f direction = targetPosition - currentPosition;
+        float distance = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+
+        if (distance > eps) {
+            sf::Vector2f normalizedDirection = direction / distance;
+            sf::Vector2f movement = normalizedDirection * moveSpeed * dealtaTime.asSeconds() * dt;
+
+            if (std::sqrt(movement.x * movement.x + movement.y * movement.y) > distance) {
+                currentPosition = targetPosition;
+            } else {
+                currentPosition += movement;
+            }
+            setPosition(currentPosition);
+        }
     }
     if(textLabel) textLabel->setPosition(center());
 }
@@ -260,6 +276,14 @@ Image::Image(sf::Texture& texture, float width, float height){
     sf::Vector2f scaleFactors(width / texture.getSize().x, height / texture.getSize().y);
     sprite->setScale(scaleFactors);
     sprite->setOrigin({texture.getSize().x / 2.f, texture.getSize().y / 2.f});
+}
+
+Image::Image(sf::Texture& texture, float width, float height, float x, float y){
+    sprite.emplace(texture);
+    sf::Vector2f scaleFactors(width / texture.getSize().x, height / texture.getSize().y);
+    sprite->setScale(scaleFactors);
+    sprite->setOrigin({texture.getSize().x / 2.f, texture.getSize().y / 2.f});
+    sprite->setPosition({x, y});
 }
 
 void Image::setPosition(sf::Vector2f pos){

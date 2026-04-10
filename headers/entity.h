@@ -69,10 +69,12 @@ public:
     Block(ShapeType shape, float width, float height, sf::Color color);
     Block(ShapeType shape, float width, float height, std::string label);
     Block(ShapeType shape, float radius, std::string label);
+    void setText(std::string label);
     void setoutline(int thickness, sf::Color color);
     void setPosition(float x, float y);
     void setPosition(sf::Vector2f pos);
     void setSize(sf::Vector2f rect);
+    std::pair<float, float> getPosition();
     sf::Vector2f center();
     float getRadius();
     void initText(std::string string, Style &style);
@@ -81,7 +83,7 @@ public:
     sf::Color getFillColor();
     void setFillColor(sf::Color color);
     void setFillColorText(sf::Color color);
-    void move(float dt);
+    void move(float dt, bool isStepByStep);
     void draw(sf::RenderWindow& window);
     std::string getLabel();
     bool isMoving();
@@ -94,6 +96,7 @@ private:
 public:
     Image() = default;
     Image(sf::Texture& texture, float width, float height);
+    Image(sf::Texture& texture, float width, float height, float x, float y);
     void setPosition(sf::Vector2f pos);
     void setPosition(float x, float y);
     sf::Color getFillColor();

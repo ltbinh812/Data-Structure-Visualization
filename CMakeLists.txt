@@ -21,6 +21,8 @@ add_executable(data-structure-visualization
     src/entity.cpp
     src/draw.cpp
     src/handleEvent.cpp
+    src/theme.cpp
+    src/highlight.cpp
     src/visualization1.cpp
     src/performVisualization1.cpp
     src/visualization2.cpp
@@ -29,7 +31,10 @@ add_executable(data-structure-visualization
     src/performVisualization3.cpp
     src/visualization4.cpp
     src/performVisualization4.cpp
+
 )
+
+target_compile_definitions(data-structure-visualization PRIVATE ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
 target_link_libraries(data-structure-visualization PRIVATE 
     SFML::Graphics 

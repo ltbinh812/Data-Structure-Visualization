@@ -23,9 +23,11 @@ void insertVisualization3(sf::RenderWindow& window);
 void deleteVisualization3(sf::RenderWindow& window);
 void searchVisualization3(sf::RenderWindow& window);
 void drawAVLTree(Block* node, sf::RenderWindow& window);
+void clearALVTree(Block* node);
 
 extern Block* newNode;
 extern Block* rootV3;
-extern float dtV1;
+extern float dtV3;
+extern std::vector<Block*> garbageV3;
 
-bool checkNextStepV3(float limitTime);
+bool checkNextStepV3(float limitTime, Block* rootV3, Block* newNode);
