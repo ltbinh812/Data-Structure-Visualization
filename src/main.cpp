@@ -8,7 +8,7 @@
 #include "draw.h"
 #include "handleEvent.h"
 #include "theme.h"
-
+#include "graphPhysics.h"
 using namespace std;
 
 sf::Time dealtaTime;
@@ -22,6 +22,7 @@ Style style3; //button text 2
 Style style4; //node text
 Style style5; //log
 Style style6; //Idx text
+Style style7; //edge text
 
 AppState appState = AppState::MAIN_MENU;
 
@@ -98,6 +99,7 @@ int main() {
     style4 = Style(font2, 25, sf::Color::Black); //node text
     style5 = Style(font3, 25, sf::Color(225, 28, 28, 220)); // log
     style6 = Style(font2, 30, sf::Color::Red); //Idx text
+    style7 = Style(font2, 20, sf::Color(255, 0, 255)); //edge text
     sf::Texture LinkedListTexture;
     if (!LinkedListTexture.loadFromFile("assets/LinkedListImage.jpg")) {
         cerr << "Failed to load LinkedListTexture" << endl;
@@ -341,34 +343,26 @@ int main() {
                     }
 
                     // Bắt sự kiện: Di chuyển chuột
+
                     if (const auto* moved = event->getIf<sf::Event::MouseMoved>()) {
                         if (isDragging) {
-                            // Tọa độ chuột giờ nằm ở biến moved->position
                             sf::Vector2f newMousePos = window.mapPixelToCoords(moved->position, cameraView);
                             sf::Vector2f delta = oldMousePos - newMousePos;
                             
                             cameraView.move(delta);
+                            
+                            // Ép camera dội ngược lại nếu người dùng cố tình kéo lố ra ngoài biển
+                            applyCameraConstraints();
+
+                            // QUAN TRỌNG: Cập nhật lại tọa độ chuột theo Camera ĐÃ ĐƯỢC ÉP VỀ
+                            // (Nếu thiếu dòng này, kéo trúng viền là camera sẽ bị giật cục/kẹt cứng)
                             oldMousePos = window.mapPixelToCoords(moved->position, cameraView);
                         }
+                    }   
+                    if(appState == AppState::VISUALIZATION5 || appState == AppState::VISUALIZATION6){
+                        graphPhysics.handleEvent(event, window, cameraView);          
                     }
-                    if (const auto* moved = event->getIf<sf::Event::MouseMoved>()) {
-                    if (isDragging) {
-                        sf::Vector2f newMousePos = window.mapPixelToCoords(moved->position, cameraView);
-                        sf::Vector2f delta = oldMousePos - newMousePos;
-                        
-                        cameraView.move(delta);
-                        
-                        // Ép camera dội ngược lại nếu người dùng cố tình kéo lố ra ngoài biển
-                        applyCameraConstraints();
-
-                        // QUAN TRỌNG: Cập nhật lại tọa độ chuột theo Camera ĐÃ ĐƯỢC ÉP VỀ
-                        // (Nếu thiếu dòng này, kéo trúng viền là camera sẽ bị giật cục/kẹt cứng)
-                        oldMousePos = window.mapPixelToCoords(moved->position, cameraView);
-                    }
-                }
-                    
             }
-
         }
 
         // SFML
@@ -411,7 +405,26 @@ int main() {
             ImGui::SFML::Render(window);
         }
 
+        if(appState == AppState::VISUALIZATION5){
+            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            ImGui::SFML::Update(window, dealtaTime);
+            window.setView(cameraView);
+            graphPhysics.updatePhysics(dealtaTime.asSeconds());
 
+            drawVisualization5(window, Global_Textures, sfmlBgColor);
+            ImGui::SFML::Render(window);
+        }
+
+        if(appState == AppState::VISUALIZATION6){
+            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            ImGui::SFML::Update(window, dealtaTime);
+            window.setView(cameraView);
+            graphPhysics.updatePhysics(dealtaTime.asSeconds());
+            graphPhysics.drawBounds(window);
+
+            // drawVisualization6(window, Global_Textures, sfmlBgColor);
+            ImGui::SFML::Render(window);
+        }
 
         if(appState == AppState::MAIN_MENU){
             // cameraView.setCenter(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f + scrollY);

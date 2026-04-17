@@ -7,6 +7,8 @@
 bool isDarkMode = false;
 ImVec4 title1Color = ImVec4(0, 1, 0, 1);
 ImVec4 title2Color = ImVec4(1, 1, 0, 1);
+sf::Color edgeColor = sf::Color(255, 127, 36);
+sf::Color outlineColor = sf::Color::Black;
 
 sf::Color applyTheme(bool isDark, ImGuiStyle& style) {
     // Luôn đặt các thông số chung ở đây để tránh bị "dính" style cũ
@@ -40,6 +42,9 @@ sf::Color applyTheme(bool isDark, ImGuiStyle& style) {
         title1Color = ImVec4(0, 1, 0, 1);
         title2Color = ImVec4(1, 1, 0, 1);
 
+        edgeColor = sf::Color(255, 127, 36);
+        outlineColor = sf::Color(255, 127, 36);
+
         return sf::Color(18, 20, 25);
     } 
     else {
@@ -64,6 +69,9 @@ sf::Color applyTheme(bool isDark, ImGuiStyle& style) {
 
         title1Color = ImVec4(0.13f, 0.55f, 0.13f, 1.0f); // Xanh lá đậm Light
         title2Color = ImVec4(0.00f, 0.40f, 0.85f, 1.0f); // Xanh dương Light
+
+        edgeColor = sf::Color::Black;
+        outlineColor = sf::Color::Black;
 
         return sf::Color(215, 230, 240); 
     }

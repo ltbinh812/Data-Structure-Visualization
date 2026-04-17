@@ -802,13 +802,13 @@ void drawAVLTree(Block* node, sf::RenderWindow& window) {
             sf::Vector2f direction = node -> pLeft -> center() - node -> center();
             float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
             if(length > eps)
-                if(!isCalculatingHistoryV3) drawArrow(window, node -> center() + direction / length * node -> getRadius(), node -> pLeft -> center() - direction / length * node -> pLeft -> getRadius());
+                if(!isCalculatingHistoryV3) drawArrow(window, node -> center() + direction / length * node -> getRadius(), node -> pLeft -> center() - direction / length * node -> pLeft -> getRadius(), edgeColor);
     }
     if(node -> pRight){
             sf::Vector2f direction = node -> pRight -> center() - node -> center();
             float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
             if(length > eps)
-                if(!isCalculatingHistoryV3) drawArrow(window, node -> center() + direction / length * node -> getRadius(), node -> pRight -> center() - direction / length * node -> pRight -> getRadius());
+                if(!isCalculatingHistoryV3) drawArrow(window, node -> center() + direction / length * node -> getRadius(), node -> pRight -> center() - direction / length * node -> pRight -> getRadius(), edgeColor);
     }
     node -> height = std::max(heightL, heightR) + 1;
     int balance = heightL - heightR;

@@ -14,7 +14,8 @@ const std::string filepath[] = {
     "/AlgorithmSourceCode/SinglyLinkedList.cpp",
     "/AlgorithmSourceCode/Heap.cpp",
     "/AlgorithmSourceCode/AVLtree.cpp",
-    "/AlgorithmSourceCode/Trie.cpp"
+    "/AlgorithmSourceCode/Trie.cpp",
+    "/AlgorithmSourceCode/Dijkstra.cpp"
 };
 std::vector<std::string> sourceCode;
 bool showCodePanel = true;  

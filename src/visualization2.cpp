@@ -518,13 +518,13 @@ void drawHeapList(sf::RenderWindow& window, std::vector<Block*>& heapList) {
                 sf::Vector2f direction = heapList[2 * i + 1] -> center() - heapList[i] -> center();
                 float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
                 if(length > eps)
-                    drawArrow(window, heapList[i] -> center() + direction / length * heapList[i] -> getRadius(), heapList[2 * i + 1] -> center() - direction / length * heapList[2 * i + 1] -> getRadius());
+                    drawArrow(window, heapList[i] -> center() + direction / length * heapList[i] -> getRadius(), heapList[2 * i + 1] -> center() - direction / length * heapList[2 * i + 1] -> getRadius(), edgeColor);
             }
             if(2 * i + 2 < heapList.size()) {
                 sf::Vector2f direction = heapList[2 * i + 2] -> center() - heapList[i] -> center();
                 float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
                 if(length > eps)
-                    drawArrow(window, heapList[i] -> center() + direction / length * heapList[i] -> getRadius(), heapList[2 * i + 2] -> center() - direction / length * heapList[2 * i + 2] -> getRadius());
+                    drawArrow(window, heapList[i] -> center() + direction / length * heapList[i] -> getRadius(), heapList[2 * i + 2] -> center() - direction / length * heapList[2 * i + 2] -> getRadius(), edgeColor);
             }
         }
 }

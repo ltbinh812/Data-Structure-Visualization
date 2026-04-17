@@ -471,7 +471,7 @@ void drawTrie(Block* node, sf::RenderWindow& window, Block* cloneRootV4) {
         
         sf::Vector2f direction = child -> center() - node -> center();
         float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-        if(length > eps) if(!isCalculatingHistoryV4) drawArrow(window, node -> center() + direction / length * node -> getRadius(), child -> center() - direction / length * child -> getRadius());
+        if(length > eps) if(!isCalculatingHistoryV4) drawArrow(window, node -> center() + direction / length * node -> getRadius(), child -> center() - direction / length * child -> getRadius(), edgeColor);
     }
 
 }

@@ -10,6 +10,7 @@
 #include "visualization2.h"
 #include "visualization3.h"
 #include "visualization4.h"
+#include "visualization5.h"
 
 void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView, std::vector<Card>& cards){
     for(auto &card: cards){
@@ -30,15 +31,15 @@ void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::
     }
     if(cards[3].clicked(event, window, cameraView)){
         initStatus4();
-        std::cout << "???????????????????\n";
         appState = AppState::VISUALIZATION4;
     }
     if(cards[4].clicked(event, window, cameraView)){
-        o = INITIALIZE;
+        initStatus5();
         appState = AppState::VISUALIZATION5;
     }
     if(cards[5].clicked(event, window, cameraView)){
         o = INITIALIZE;
+        //initStatus6();
         appState = AppState::VISUALIZATION6;
     }
 }

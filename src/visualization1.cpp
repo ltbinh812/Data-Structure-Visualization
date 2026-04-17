@@ -573,7 +573,7 @@ void drawLinkedList(sf::RenderWindow& window) {
                 sf::Vector2f direction = linkedList[i + 1] -> center() - linkedList[i] -> center();
                 float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
                 if(length > eps)
-                    if(!isCalculatingHistoryV1) drawArrow(window, linkedList[i] -> center() + direction / length * linkedList[i] -> getRadius(), linkedList[i + 1] -> center() - direction / length * linkedList[i + 1] -> getRadius());
+                    if(!isCalculatingHistoryV1) drawArrow(window, linkedList[i] -> center() + direction / length * linkedList[i] -> getRadius(), linkedList[i + 1] -> center() - direction / length * linkedList[i + 1] -> getRadius(), edgeColor);
 
         }
     }

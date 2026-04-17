@@ -74,6 +74,7 @@ public:
     void setPosition(float x, float y);
     void setPosition(sf::Vector2f pos);
     void setSize(sf::Vector2f rect);
+    void setColor(sf::Color color);
     std::pair<float, float> getPosition();
     sf::Vector2f center();
     float getRadius();
@@ -147,5 +148,5 @@ struct Notification{
 
 
 
-void drawArrow(sf::RenderWindow& window, sf::Vector2f start, sf::Vector2f end);
+void drawArrow(sf::RenderWindow& window, sf::Vector2f start, sf::Vector2f end, sf::Color arrowColor, bool drawArrowHead = true, float thickness = 2.2f);
 void drawPointer(sf::RenderWindow& window, sf::Vector2f Pos, std::string label);

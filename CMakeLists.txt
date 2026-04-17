@@ -23,6 +23,7 @@ add_executable(data-structure-visualization
     src/handleEvent.cpp
     src/theme.cpp
     src/highlight.cpp
+    src/graphPhysics.cpp
     src/visualization1.cpp
     src/performVisualization1.cpp
     src/visualization2.cpp
@@ -31,6 +32,8 @@ add_executable(data-structure-visualization
     src/performVisualization3.cpp
     src/visualization4.cpp
     src/performVisualization4.cpp
+    src/visualization5.cpp
+    src/performVisualization5.cpp
 
 )
 

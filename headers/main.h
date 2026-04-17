@@ -22,6 +22,7 @@ extern Style style3;
 extern Style style4;
 extern Style style5;
 extern Style style6;
+extern Style style7;
 
 enum AppState{
     MAIN_MENU,

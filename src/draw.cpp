@@ -7,6 +7,7 @@
 #include "entity.h"
 #include "theme.h"
 #include "highlight.h"
+#include "graphPhysics.h"
 #include "visualization1.h"
 #include "performVisualization1.h"
 #include "visualization2.h"
@@ -15,6 +16,9 @@
 #include "performVisualization3.h"
 #include "visualization4.h"
 #include "performVisualization4.h"
+#include "visualization5.h"
+#include "performVisualization5.h"
+
 
 Block* Log = nullptr;
 float delayLog = 0;
@@ -640,6 +644,84 @@ void drawVisualization4(sf::RenderWindow& window, std::vector<sf::Texture>& text
             }
             ImGui::EndGroup();
 
+        ImGui::PopStyleColor();
+    ImGui::End();
+}
+
+
+void drawVisualization5(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor){
+    sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | 
+                                    ImGuiWindowFlags_AlwaysAutoResize | 
+                                    ImGuiWindowFlags_NoMove | 
+                                    ImGuiWindowFlags_NoBackground |
+                                    ImGuiWindowFlags_NoSavedSettings;
+    ImGui::Begin("##OverlayMenu", nullptr, window_flags);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f)); 
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
+        if (ImGui::ImageButton("home", textures[0], sf::Vector2f(75, 75))) {
+            appState = AppState::MAIN_MENU;
+            ImGui::PopStyleColor(3);
+            ImGui::End();
+            return;
+        }
+        ImGui::SameLine(0, 20);
+        if (ImGui::ImageButton("dark_mode", textures[1], sf::Vector2f(67, 67))) {
+            isDarkMode = !isDarkMode;
+            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+            ImGui::PopStyleColor(3);
+            ImGui::End();
+            return;
+        }
+        else if(!isDarkMode && ImGui::ImageButton("light_mode", textures[2], sf::Vector2f(67, 67))) {
+            isDarkMode = !isDarkMode;
+            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+            ImGui::PopStyleColor(3);
+            ImGui::End();
+            return;
+        }
+        ImGui::PopStyleColor(3);
+    ImGui::End();
+
+    sf::Vector2u windowSize = window.getSize();
+    float currentControlWidth = windowSize.x;
+    if(showCodePanel) currentControlWidth -= codePanelWidth;
+    float panelHeight = 275.f;
+    ImGui::GetIO().FontGlobalScale = 2.0f;
+    drawGlobalModeToggle(windowSize, panelHeight, checkFinishedV5(), dtV5, currentStepIdxV5, scriptV5.size());
+    ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - panelHeight));
+    ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
+
+
+    drawLog(window);
+    graphPhysics.drawBounds(window);
+    ImGui::SetNextWindowPos(ImVec2(0, window.getSize().y - panelHeight));
+    ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
+    ImGui::Begin("ControlPanel", nullptr, 
+        ImGuiWindowFlags_NoMove | 
+        ImGuiWindowFlags_NoResize | 
+        ImGuiWindowFlags_NoCollapse | 
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoBringToFrontOnFocus);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0.5f));
+        ImGui::BeginChild("Operations", ImVec2(175, 0), true);
+            if (ImGui::Selectable("Initialize", o == INITIALIZE)) { if(checkFinishedV5()) o = INITIALIZE; }
+            if (ImGui::Selectable("Dijkstra(s)", o ==GRAPH ))    { if(checkFinishedV5()) o = GRAPH; }
+            ImGui::EndChild();
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+            if (o == INITIALIZE) initVisualization5(window);
+            else if(o == GRAPH) dijkstraVisualization5(window);
+            
+            
+            performVisualization5(window);
+            
+            if(checkFinishedV5()){
+                drawDijkstra(graphPhysics.getNodes(), window);
+            }
+            ImGui::EndGroup();
         ImGui::PopStyleColor();
     ImGui::End();
 }

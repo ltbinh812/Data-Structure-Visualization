@@ -5,7 +5,7 @@
 #include "main.h"
 #include "entity.h"
 #include "highlight.h"
-
+#include "theme.h"
 
 // struct cloneVisualization1 
 cloneVisualization1::cloneVisualization1(std::vector<Block*> linkedList, Block* newNode) {
@@ -180,7 +180,7 @@ void runV1(sf::RenderWindow& window){
         if(scriptV1[currentStepIdxV1].focusNodeIdx < linkedList.size()){
                 sf::Vector2f direction = linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> center() - newNode -> center();
                 float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
-                if(!isCalculatingHistoryV1) drawArrow(window, newNode -> center() + direction / length * newNode -> getRadius(), linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> center() - direction / length * linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> getRadius());
+                if(!isCalculatingHistoryV1) drawArrow(window, newNode -> center() + direction / length * newNode -> getRadius(), linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> center() - direction / length * linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> getRadius(), edgeColor);
         }
         if(scriptV1[currentStepIdxV1].focusNodeIdx > 0)
             if(!isCalculatingHistoryV1) drawPointer(window, linkedList[scriptV1[currentStepIdxV1].focusNodeIdx - 1] -> center() + sf::Vector2f(0.f, -50.f), "pointer/" + std::to_string(scriptV1[currentStepIdxV1].focusNodeIdx - 1));

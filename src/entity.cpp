@@ -4,7 +4,8 @@
 #include "entity.h"
 #include <SFML/Graphics.hpp>
 #include "main.h"  
-
+#include "cmath"
+#include "theme.h"
 
 Text::Text(std::string string, Style &style)
     : text(style.font, string, style.characterSize)
@@ -154,6 +155,12 @@ void Block::setSize(sf::Vector2f rect){
     rectangle.setOrigin({rect.x / 2.f, rect.y / 2.f});
 }
 
+void Block::setColor(sf::Color color){
+    if(shape == CIRCLE) circle.setOutlineColor(color);
+    else if(shape == RECTANGLE) rectangle.setOutlineColor(color);
+    else if(shape == NODE) circle.setOutlineColor(color);
+}
+
 std::pair<float, float> Block::getPosition(){
     if(shape == CIRCLE) return {circle.getPosition().x, circle.getPosition().y};
     else if(shape == RECTANGLE) return {rectangle.getPosition().x, rectangle.getPosition().y};
@@ -259,6 +266,8 @@ bool Block::isMoving(){
 }
 
 void Block::draw(sf::RenderWindow& window){
+    setColor(outlineColor);
+
     if(shape == CIRCLE) window.draw(circle);
     else if(shape == RECTANGLE) window.draw(rectangle);
     else if(shape == NODE) window.draw(circle);
@@ -448,36 +457,36 @@ void Notification::draw(sf::RenderWindow& window) {
     }
 }
 
-void drawArrow(sf::RenderWindow& window, sf::Vector2f start, sf::Vector2f end) {
-    sf::Vertex line[2];
-    line[0].position = start;
-    line[0].color = sf::Color::Black;
-    line[1].position = end;
-    line[1].color = sf::Color::Black;
-
-    window.draw(line, 2, sf::PrimitiveType::Lines);
 
 
-    const float arrowSize = 15.f;
+void drawArrow(sf::RenderWindow& window, sf::Vector2f start, sf::Vector2f end, sf::Color arrowColor, bool drawArrowHead, float thickness) {
     sf::Vector2f direction = end - start;
     float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
     
-    if (length > eps) {
-        sf::Vector2f unitDirection = direction / length;
-        sf::Vector2f perpendicular(-unitDirection.y, unitDirection.x);
+    if (length <= 1e-4) return; 
 
+    sf::RectangleShape line(sf::Vector2f{length, thickness});
+    line.setOrigin(sf::Vector2f{0.f, thickness / 2.f}); 
+    line.setPosition(start);
+    line.setFillColor(arrowColor);
+    line.setRotation(sf::radians(std::atan2(direction.y, direction.x)));
+    window.draw(line);
+
+    
+    if (drawArrowHead) {
+        const float arrowSize = 10.f + (thickness * 1.5f); 
+        sf::Vector2f unitDirection = direction / length;
+        sf::Vector2f perpendicular{-unitDirection.y, unitDirection.x}; 
         sf::Vertex arrowHead[3];
         arrowHead[0].position = end;
-        arrowHead[0].color = sf::Color::Black;
+        arrowHead[0].color = arrowColor;
         arrowHead[1].position = end - unitDirection * arrowSize + perpendicular * (arrowSize / 2.f);
-        arrowHead[1].color = sf::Color::Black;
+        arrowHead[1].color = arrowColor;
         arrowHead[2].position = end - unitDirection * arrowSize - perpendicular * (arrowSize / 2.f);
-        arrowHead[2].color = sf::Color::Black;
-
+        arrowHead[2].color = arrowColor;
         window.draw(arrowHead, 3, sf::PrimitiveType::Triangles);
     }
 }
-
 
 void drawPointer(sf::RenderWindow& window, sf::Vector2f Pos, std::string label) {
     Text text(label, style4);
