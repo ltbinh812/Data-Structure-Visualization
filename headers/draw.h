@@ -31,4 +31,4 @@ void drawVisualization2(sf::RenderWindow& window, std::vector<sf::Texture>& text
 void drawVisualization3(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor);
 void drawVisualization4(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor);
 void drawVisualization5(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor);
-// void drawVisualization6(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor);
+void drawVisualization6(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor);

@@ -420,9 +420,8 @@ int main() {
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
             graphPhysics.updatePhysics(dealtaTime.asSeconds());
-            graphPhysics.drawBounds(window);
 
-            // drawVisualization6(window, Global_Textures, sfmlBgColor);
+            drawVisualization6(window, Global_Textures, sfmlBgColor);
             ImGui::SFML::Render(window);
         }
 

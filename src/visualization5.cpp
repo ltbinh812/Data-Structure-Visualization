@@ -61,7 +61,7 @@ void initStatus5(){
 
 // dijkstra's algorithm
 void initVisualization5(sf::RenderWindow& window) {
-    ImGui::TextColored(title1Color, "Initializing the Dijkstra Graph!");
+    ImGui::TextColored(title1Color, "Initializing the graph!");
     ImGui::Spacing();
     
 

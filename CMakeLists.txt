@@ -34,6 +34,8 @@ add_executable(data-structure-visualization
     src/performVisualization4.cpp
     src/visualization5.cpp
     src/performVisualization5.cpp
+    src/visualization6.cpp
+    src/performVisualization6.cpp
 
 )
 
