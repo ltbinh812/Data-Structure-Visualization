@@ -10,10 +10,10 @@
 enum class StepTypeV4 { INITIALIZE, NEW_NODE, INSERT, DELETE, TRAVERSE, UPDATE, SEARCH, FINISH, HIGHLIGHT_1, HIGHLIGHT_2};
 
 struct AnimationStepV4 {
-    std::vector<int> activeLines;         // Dòng code highlight tương ứng
-    Block* focusNode;     // Node đang được xét tới 
-    int focusNodeVal;     // Giá trị node đang được xét tới
-    std::string log;      // Lời nhắn hiện trên UI
+    std::vector<int> activeLines;
+    Block* focusNode;
+    int focusNodeVal;
+    std::string log;
     StepTypeV4 type;
     Block* focusAnotherNode;
     bool isFinished = false;

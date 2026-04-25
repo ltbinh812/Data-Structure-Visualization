@@ -24,6 +24,7 @@ add_executable(data-structure-visualization
     src/theme.cpp
     src/highlight.cpp
     src/graphPhysics.cpp
+    src/importFile.cpp
     src/visualization1.cpp
     src/performVisualization1.cpp
     src/visualization2.cpp

@@ -8,10 +8,10 @@ GraphPhysicsManager graphPhysics;
 
 void GraphPhysicsManager::clearNodes() {
     for(Block* node : nodes) {
-        delete node; // Giải phóng bộ nhớ cho Node cũ
+        delete node; 
     }
     nodes.clear();
-    draggedNode = nullptr; // Reset tay cầm chuột để tránh lỗi văng game
+    draggedNode = nullptr;
 }
 
 void GraphPhysicsManager::addNode(Block* node) {
@@ -41,10 +41,9 @@ sf::FloatRect GraphPhysicsManager::getCurrentBounds() {
     int expansionLevel = nodes.size() / NODES_PER_EXPANSION;
     float currentDim = BASE_BOX_SIZE + (expansionLevel * EXPANSION_STEP);
     
-    // SFML 3.0: Truyền vào 2 vector (Position và Size)
     return sf::FloatRect{
-        sf::Vector2f{300.0f, 50.0f}, // position (left, top)
-        sf::Vector2f{currentDim, currentDim}                  // size (width, height)
+        sf::Vector2f{300.0f, 50.0f}, 
+        sf::Vector2f{currentDim, currentDim}
     };
 }
 
@@ -64,7 +63,6 @@ sf::Vector2f GraphPhysicsManager::getSafeSpawnPosition() {
 
         bool isSafe = true;
         for (Block* node : nodes) {
-            // CHUYỂN ĐỔI PAIR -> VECTOR2F
             sf::Vector2f nodePos{node->getPosition().first, node->getPosition().second};
             
             if (getDistance(newPos, nodePos) < SAFE_DISTANCE) {
@@ -79,7 +77,6 @@ sf::Vector2f GraphPhysicsManager::getSafeSpawnPosition() {
 }
 
 void GraphPhysicsManager::updatePhysics(float dt) {
-    // 1. Lực đẩy (Repulsion) giữa các Node
     for (size_t i = 0; i < nodes.size(); ++i) {
         for (size_t j = i + 1; j < nodes.size(); ++j) {
             Block* a = nodes[i];
@@ -93,7 +90,6 @@ void GraphPhysicsManager::updatePhysics(float dt) {
                 sf::Vector2f pushDir = (posB - posA) / dist;
                 float overlap = SAFE_DISTANCE - dist;
                 
-                // NHÂN THÊM dt VÀO ĐÂY ĐỂ ĐỒNG BỘ THỜI GIAN THỰC
                 sf::Vector2f force = pushDir * overlap * PUSH_STRENGTH * dt;
 
                 if (a == draggedNode) {
@@ -110,10 +106,8 @@ void GraphPhysicsManager::updatePhysics(float dt) {
         }
     }
 
-    // 2. Ép các Node không được văng ra khỏi Khung Đỏ
     sf::FloatRect bounds = getCurrentBounds();
     for (Block* node : nodes) {
-        // CHUYỂN ĐỔI PAIR -> VECTOR2F
         sf::Vector2f pos{node->getPosition().first, node->getPosition().second};
         bool clamped = false;
 
@@ -128,7 +122,6 @@ void GraphPhysicsManager::updatePhysics(float dt) {
         if (pos.y > maxY) { pos.y = maxY; clamped = true; }
 
         if (clamped) {
-            // CHUYỂN ĐỔI LẠI THÀNH PAIR
             node->setPosition({pos.x, pos.y});
         }
     }
@@ -142,7 +135,6 @@ void GraphPhysicsManager::handleEvent(const std::optional<sf::Event>& event, sf:
             draggedNode = nullptr;
             sf::Vector2f mousePos = window.mapPixelToCoords(pressed->position, cameraView);
             for (Block* node : nodes) {
-                // CHUYỂN ĐỔI PAIR -> VECTOR2F
                 sf::Vector2f nodePos{node->getPosition().first, node->getPosition().second};
                 
                 if (getDistance(mousePos, nodePos) <= NODE_RADIUS) {

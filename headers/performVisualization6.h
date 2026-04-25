@@ -10,10 +10,10 @@
 enum class StepTypeV6 { INITIALIZE, CHOOSE_EDGE, NOT_CHOOSE_EDGE, CHOOSE_VERTEX, TRAVERSE_VERTEX, TRAVERSE_EDGE, FINISH, HIGHLIGHT_1};
 
 struct AnimationStepV6 {
-    std::vector<int> activeLines;         // Dòng code highlight tương ứng
-    int focusNode1;     // Node đang được xét tới 
-    int focusNode2;     // Giá trị node đang được xét tới
-    std::string log;      // Lời nhắn hiện trên UI
+    std::vector<int> activeLines;
+    int focusNode1;
+    int focusNode2;
+    std::string log;
     StepTypeV6 type;
     int focusAnotherNode;
 

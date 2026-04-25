@@ -1,20 +1,18 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <vector>
-#include <optional> // Cần cho std::optional của SFML 3.0
-#include "entity.h" // Nhúng class Block của bạn vào đây
+#include <optional> 
+#include "entity.h" 
 
 class GraphPhysicsManager {
 private:
     std::vector<Block*> nodes;
     Block* draggedNode = nullptr;
 
-    // Các thông số tinh chỉnh
-    const float NODE_RADIUS = 40.0f;     // Bán kính click chuột
-    const float SAFE_DISTANCE = 300.0f;  // Khoảng cách đẩy nhau
-    const float PUSH_STRENGTH = 3.5f;   // Lực đẩy
+    const float NODE_RADIUS = 40.0f;     // ban kinh chuot
+    const float SAFE_DISTANCE = 300.0f;  // khoang cach day nhau
+    const float PUSH_STRENGTH = 3.5f;   // force push
     
-    // Cấu hình khung đỏ (Bounding Box)
     const float BASE_BOX_SIZE = 750.0f;  
     const int NODES_PER_EXPANSION = 8;  
     const float EXPANSION_STEP = 300.0f; 

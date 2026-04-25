@@ -8,8 +8,9 @@
 #include "visualization3.h"
 #include "draw.h"
 #include "theme.h"
+#include "ImportFile.h"
 
-//AVL tree
+
 float dtV3 = 1.0f;
 Block *rootV3 = nullptr;
 
@@ -49,11 +50,11 @@ void initStatus3() {
         delete clone;
     dummySetV3.clear();
     liveToDummyMapV3.clear();
-    historyV3.clear();
+    for(auto &clone:historyV3) delete clone; historyV3.clear();
     historyV3.push_back(new cloneVisualization3(rootV3, newNode, scriptV3[0]));
 
     // draw.cpp
-    Log = nullptr;
+    showImLog = false;
     delayLog = 0;
     o = INITIALIZE;
     isStepByStep = false;
@@ -74,25 +75,17 @@ int getHeight(Block* node) {
 }
 
 void calculateAllPos(Block* node, int heightTree, int level,  float x, float y) {
-    std::cout << ".\n" << std::endl;
     if (node == nullptr) return;
-    std::cout << ".\n";
     node->targetPosition = sf::Vector2f(x, y);
-    std::cout << "{" << x << "," << y << "}" << " " << level << " " << heightTree << std::endl;
-    std::cout << ".\n";
 
-    float minGap = 80.f; // Khoảng cách nhỏ nhất ở tầng cuối (Level = heightTree)
-    float vGap = 150.f;  // Khoảng cách đứng giữa các tầng
+    float minGap = 80.f; // khoang cach giua cac node o tang cuoi (Level = heightTree)
+    float vGap = 150.f;  // khoang cach giua cac tang
 
     float hOffset = 0;
-    std::cout << ".\n";
     hOffset = minGap * std::pow(2.f, static_cast<float>(heightTree - 2 - level));
-    std::cout << ".\n";
 
     calculateAllPos(node->pLeft, heightTree, level + 1, x - hOffset, y + vGap);
-    std::cout << ".\n";
     calculateAllPos(node->pRight, heightTree, level + 1,  x + hOffset, y + vGap);
-    std::cout << ".\n";
 }
 
 
@@ -169,21 +162,18 @@ RotationType checkRotationType(cloneNode* node) {
     if (node == nullptr) return RotationType::NONE;
 
     int balance = getBalance(node);
-    std::cout << node -> value << ": " << balance << " ";
-    std::cout << (node -> left ? node -> left -> height : 0) << " " << (node -> right ? node -> right -> height : 0) << "\n";
     if (balance > 1) {
         if (getBalance(node->left) >= 0)
-            return RotationType::LEFT_LEFT; // Trường hợp LL
+            return RotationType::LEFT_LEFT; // case LL
         else
-            return RotationType::LEFT_RIGHT; // Trường hợp LR
+            return RotationType::LEFT_RIGHT; // case LR
     }
 
-    // 2. Lệch Phải (Right heavy)
     if (balance < -1) {
         if (getBalance(node->right) <= 0)
-            return RotationType::RIGHT_RIGHT; // Trường hợp RR
+            return RotationType::RIGHT_RIGHT; // case RR
         else
-            return RotationType::RIGHT_LEFT; // Trường hợp RL
+            return RotationType::RIGHT_LEFT; // case RL
     }
 
     return RotationType::NONE;
@@ -199,7 +189,6 @@ void clearFakeNode(cloneNode* node) {
 void insertScriptV3(Block* node, cloneNode* fakenode, int value, int direction, Block* prenode, cloneNode* prefakenode = nullptr) {
     if(node == nullptr) return;
     scriptV3.push_back({{42}, node, -1, "", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = scriptV3.back().focusNode;
-    std::cout << "node: " << fakenode -> value << std::endl;
     if(value < std::stoi(node -> getLabel())){
         if(node -> pLeft == nullptr){
             newNode = new Block(CIRCLE, 30.f, std::to_string(value));
@@ -278,7 +267,6 @@ cloneNode* findMaximumV3(cloneNode* fakenode) {
 
 cloneNode* deleteScriptV3(Block* node, cloneNode* fakenode, int value, int direction, cloneNode* prefakenode, Block* deletenode = nullptr) {
     if(fakenode == nullptr) return nullptr;
-    std::cout << "&&&&&&&&&&&&&&" << fakenode -> value << " " << value << "\n";
     scriptV3.push_back({{72}, node, -1, "", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
     if(value == std::stoi(node -> getLabel()) && (targetDeleteNodeV3 == nullptr || targetDeleteNodeV3 == node)) {
         if(deletenode == nullptr)   scriptV3.push_back({{79}, node, 3, "", StepTypeV3::TRAVERSE});
@@ -294,7 +282,6 @@ cloneNode* deleteScriptV3(Block* node, cloneNode* fakenode, int value, int direc
             }
             else {
                 targetDeleteNodeV3 = nullptr;
-                std::cout << fakenode -> realNode -> getLabel() << " is deleted\n";
                 scriptV3.push_back({{82, 84}, node, direction, "", StepTypeV3::DELETE, (prefakenode ? prefakenode -> realNode : nullptr), deletenode});
                 *fakenode = *temp;
                 delete temp;
@@ -319,7 +306,6 @@ cloneNode* deleteScriptV3(Block* node, cloneNode* fakenode, int value, int direc
     if(fakenode == nullptr) return nullptr;
     fakenode -> height = getHeight(fakenode);
 
-    std::cout << "check rotation type: \n";
     RotationType RoTa = checkRotationType(fakenode);
     if(RoTa == RotationType::LEFT_LEFT) {
         cloneNode* temp = fakenode -> left;
@@ -372,12 +358,10 @@ cloneNode* initV3(cloneNode* fakenode, Block* node, cloneNode* prefakenode, int 
         return fakenode;
     }
     if(value < std::stoi(fakenode -> realNode -> getLabel())){
-        std::cout << fakenode -> value << " to left\n";
         fakenode -> left = initV3(fakenode -> left, node -> pLeft, fakenode, value, -1);
         node -> pLeft = fakenode -> left -> realNode;
     }
     else if(value >= std::stoi(fakenode -> realNode -> getLabel())){    
-        std::cout << fakenode -> value << " to right\n";
         fakenode -> right = initV3(fakenode -> right, node -> pRight, fakenode, value, 1);
         node -> pRight = fakenode -> right -> realNode;
     }
@@ -420,7 +404,7 @@ void initVisualization3(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color,"Initialize a AVL tree:");
     ImGui::Spacing();
 
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
 
     ImGui::Text("Enter the values to initialize: A[] = "); 
@@ -441,13 +425,46 @@ void initVisualization3(sf::RenderWindow& window) {
         temp = true;
     }
     ImGui::SameLine();
+    if ((isStepByStep || checkFinishedV3()) && ImGui::Button("Load File", ImVec2(150.0f, 30))) {
+        std::string fileContent = openAndReadFile();
+        if (!fileContent.empty()) {
+            strncpy(inputBuffer, fileContent.c_str(), sizeof(inputBuffer) - 1);
+            inputBuffer[sizeof(inputBuffer) - 1] = '\0'; 
+            temp = true; 
+        }
+    }
+    ImGui::SameLine();
     if ((isStepByStep || checkFinishedV3()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
-
         std::string data(inputBuffer);
         std::stringstream ss(data);
-        int value;
+        std::string token;
         std::vector<int> newElements;
-        while (ss >> data) newElements.push_back(std::stoi(data));
+        bool isValidInput = true;
+
+        while (ss >> token) {
+            try {
+                size_t parsedChars;
+                int value = std::stoi(token, &parsedChars);
+                if (parsedChars != token.length() || value < -999 || value > 999) {
+                    isValidInput = false; 
+                    break;
+                }
+                newElements.push_back(value);
+                if (newElements.size() > 999) { 
+                    isValidInput = false; 
+                    break;
+                }
+            } catch (const std::exception&) {
+                isValidInput = false; 
+                break;
+            }
+        }
+
+        if (!isValidInput || newElements.empty()) {
+            setLog("Invalid input!");
+            temp = false;
+            return;
+        }
 
         if (!newElements.empty()) {
             scriptV3.clear();
@@ -461,7 +478,7 @@ void initVisualization3(sf::RenderWindow& window) {
                 delete newNode;
                 newNode = nullptr;
             }
-            historyV3.clear();
+            for(auto &clone:historyV3) delete clone; historyV3.clear();
             for(auto& garbage:garbageV3) delete garbage;
             garbageV3.clear();
 
@@ -496,7 +513,7 @@ void initVisualization3(sf::RenderWindow& window) {
         }
         for(auto& garbage:garbageV3) delete garbage;
         garbageV3.clear();
-        historyV3.clear();
+        for(auto &clone:historyV3) delete clone; historyV3.clear();
         isCalculatingHistoryV3 = true;
         firstTime = true;
     }
@@ -505,7 +522,7 @@ void initVisualization3(sf::RenderWindow& window) {
 void insertVisualization3(sf::RenderWindow& window){
     ImGui::TextColored(title1Color, "Insert an element into the AVL tree:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the value to insert:");
     ImGui::SameLine();
@@ -523,71 +540,61 @@ void insertVisualization3(sf::RenderWindow& window){
     }
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV3()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))){
+        temp = false;
         std::string data(inputBuffer);
+        std::stringstream ss(data);
+        std::string token, extra;
 
-        if(data != ""){
-            int value = std::stoi(data);
-            scriptV3.clear();
-            currentStepIdxV3 = 0;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            historyV3.clear();
-            for(auto& garbage:garbageV3) delete garbage;
-            garbageV3.clear();
-
-            setColorALVTree(rootV3, sf::Color::White);
-            clearFakeNode(fakerootV3);
-            fakerootV3 = cloneStructure(rootV3);
-            
-            if(rootV3 != nullptr) {
-                scriptV3.push_back({{124, 42}, nullptr, -1, "", StepTypeV3::HIGHLIGHT_1});
-                insertScriptV3(rootV3, fakerootV3, value, 0, nullptr);
-            }
-            else{
-                scriptV3.push_back({{124, 42}, nullptr, -1, "", StepTypeV3::HIGHLIGHT_1});
-                newNode = new Block(CIRCLE, 30.f, std::to_string(value));
-                scriptV3.push_back({{42, 43}, newNode, value, "Đã tạo xong AVL Tree!", StepTypeV3::NEW_NODE});
-                scriptV3.push_back({{124}, nullptr, 0, "", StepTypeV3::INSERT});
-                newNode = nullptr;
-            }            
-            scriptV3.push_back({{}, rootV3, value, "Đã tạo xong AVL Tree!", StepTypeV3::FINISH});
-            
-            for(int i = 0; i < scriptV3.size(); i++){
-                AnimationStepV3 step = scriptV3[i];
-                if(step.type == StepTypeV3::INITIALIZE){
-                    std::cout << "initialize\n";
-                }
-                if(step.type == StepTypeV3::NEW_NODE){
-                    std::cout << "new node\n";
-                }
-                if(step.type == StepTypeV3::INSERT){
-                    std::cout << "insert\n";
-                }
-                if(step.type == StepTypeV3::DELETE){
-                    std::cout << "delete\n";
-                }
-                if(step.type == StepTypeV3::TRAVERSE){
-                    std::cout << "traverse\n";
-                }
-                if(step.type == StepTypeV3::UPDATE){
-                    std::cout << "update\n";
-                }
-                if(step.type == StepTypeV3::ROTATE_LEFT_LEFT){
-                    std::cout << "rotate left left\n";
-                }
-                if(step.type == StepTypeV3::ROTATE_RIGHT_RIGHT){
-                    std::cout << "rotate right right\n";
-                }
-                if(step.type == StepTypeV3::FINISH){
-                    std::cout << "finish\n";
-                }
-            }
-
-            isCalculatingHistoryV3 = true;
-            firstTime = true;
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
         }
+
+        int value = 0;
+        try {
+            size_t parsedChars;
+            value = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+
+        scriptV3.clear();
+        currentStepIdxV3 = 0;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        for(auto &clone:historyV3) delete clone; historyV3.clear();
+        for(auto& garbage:garbageV3) delete garbage;
+        garbageV3.clear();
+
+        setColorALVTree(rootV3, sf::Color::White);
+        clearFakeNode(fakerootV3);
+        fakerootV3 = cloneStructure(rootV3);
+        
+        if(rootV3 != nullptr) {
+            scriptV3.push_back({{124, 42}, nullptr, -1, "", StepTypeV3::HIGHLIGHT_1});
+            insertScriptV3(rootV3, fakerootV3, value, 0, nullptr);
+        }
+        else{
+            scriptV3.push_back({{124, 42}, nullptr, -1, "", StepTypeV3::HIGHLIGHT_1});
+            newNode = new Block(CIRCLE, 30.f, std::to_string(value));
+            scriptV3.push_back({{42, 43}, newNode, value, "", StepTypeV3::NEW_NODE});
+            scriptV3.push_back({{124}, nullptr, 0, "", StepTypeV3::INSERT});
+            newNode = nullptr;
+        }            
+        scriptV3.push_back({{}, rootV3, value, "", StepTypeV3::FINISH});
+        
+
+        isCalculatingHistoryV3 = true;
+        firstTime = true;
+        
     }
 }
 
@@ -596,7 +603,7 @@ void insertVisualization3(sf::RenderWindow& window){
 void searchVisualization3(sf::RenderWindow& window){
     ImGui::TextColored(title1Color, "Search an element in the AVL tree:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the value to search:");
     ImGui::SameLine();
@@ -609,7 +616,6 @@ void searchVisualization3(sf::RenderWindow& window){
         std::vector<std::string> vec;
         auto get = [&](auto self, Block* node, std::vector<std::string> &vec) -> void {
             if(node == nullptr) return;
-            std::cout << node -> getLabel() << std::endl;
             self(self, node -> pLeft, vec);
             vec.push_back(node -> getLabel());
             self(self, node -> pRight, vec);
@@ -624,53 +630,71 @@ void searchVisualization3(sf::RenderWindow& window){
     }
     ImGui::SameLine();
     if ((isStepByStep || checkFinishedV3()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)) && rootV3 != nullptr)) {
+        temp = false;
         std::string valueStr(inputBuffer);
-        int value;
-        if(valueStr != ""){
-            value = std::stoi(valueStr);
-            scriptV3.clear();
-            currentStepIdxV3 = 0;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            historyV3.clear();
-            for(auto& garbage:garbageV3) delete garbage;
-            garbageV3.clear();
+        std::stringstream ss(valueStr);
+        std::string token, extra;
 
-            setColorALVTree(rootV3, sf::Color::White);
-            Block* node = rootV3;
-            bool found = false;
-            scriptV3.push_back({{132}, nullptr, -1, "", StepTypeV3::HIGHLIGHT_1});
-            while(node){
-                scriptV3.push_back({{109}, node, -1, "Đã tạo xong AVL Tree!", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
-                if(std::stoi(node -> getLabel()) == value){
-                    scriptV3.push_back({{110}, node, -1, "Đã tạo xong AVL Tree!", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
-                    found = true;
-                    break;
-                }
-                if(std::stoi(node -> getLabel()) > value){
-                    scriptV3.push_back({{111}, node, -1, "Đã tạo xong AVL Tree!", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
-                    node = node -> pLeft;
-                }
-                else{
-                    scriptV3.push_back({{112}, node, -1, "Đã tạo xong AVL Tree!", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
-                    node = node -> pRight;
-                }
-            }
-            if(found)   scriptV3.push_back({{132}, node, 1, "Đã tạo xong AVL Tree!", StepTypeV3::SEARCH});
-            else        scriptV3.push_back({{132}, nullptr, -1, "Đã tạo xong AVL Tree!", StepTypeV3::SEARCH});
-            scriptV3.push_back({{}, rootV3, value, "Đã tạo xong AVL Tree!", StepTypeV3::FINISH});
-            isCalculatingHistoryV3 = true;
-            firstTime = true;
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
         }
+
+        int value = 0;
+        try {
+            size_t parsedChars;
+            value = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+        scriptV3.clear();
+        currentStepIdxV3 = 0;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        for(auto &clone:historyV3) delete clone; historyV3.clear();
+        for(auto& garbage:garbageV3) delete garbage;
+        garbageV3.clear();
+
+        setColorALVTree(rootV3, sf::Color::White);
+        Block* node = rootV3;
+        bool found = false;
+        scriptV3.push_back({{132}, nullptr, -1, "", StepTypeV3::HIGHLIGHT_1});
+        while(node){
+            scriptV3.push_back({{109}, node, -1, "", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
+            if(std::stoi(node -> getLabel()) == value){
+                scriptV3.push_back({{110}, node, -1, "", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
+                found = true;
+                break;
+            }
+            if(std::stoi(node -> getLabel()) > value){
+                scriptV3.push_back({{111}, node, -1, "", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
+                node = node -> pLeft;
+            }
+            else{
+                scriptV3.push_back({{112}, node, -1, "", StepTypeV3::TRAVERSE}); scriptV3.back().setWhiteNode = node;
+                node = node -> pRight;
+            }
+        }
+        if(found)   scriptV3.push_back({{132}, node, 1, "", StepTypeV3::SEARCH});
+        else        scriptV3.push_back({{132}, nullptr, -1, "", StepTypeV3::SEARCH});
+        scriptV3.push_back({{}, rootV3, value, "", StepTypeV3::FINISH});
+        isCalculatingHistoryV3 = true;
+        firstTime = true;
     }
 } 
 void deleteVisualization3(sf::RenderWindow& window){
     ImGui::TextColored(title1Color, "Delete an element in AVL tree:");
     ImGui::Spacing();
     
-    static char valueBuffer[256] = "";
+    static char valueBuffer[15000] = "";
     bool temp = false;
 
     ImGui::Text("Enter the value to delete:");
@@ -683,7 +707,6 @@ void deleteVisualization3(sf::RenderWindow& window){
         std::vector<std::string> vec;
         auto get = [&](auto self, Block* node, std::vector<std::string> &vec) -> void {
             if(node == nullptr) return;
-            std::cout << node -> getLabel() << std::endl;
             self(self, node -> pLeft, vec);
             vec.push_back(node -> getLabel());
             self(self, node -> pRight, vec);
@@ -699,17 +722,36 @@ void deleteVisualization3(sf::RenderWindow& window){
     }
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV3()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
+        temp = false;
         std::string data(valueBuffer);
-        if(data == "") return;
+        std::stringstream ss(data);
+        std::string token, extra;
 
-        int value = std::stoi(data);
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
+        }
+
+        int value = 0;
+        try {
+            size_t parsedChars;
+            value = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
         scriptV3.clear();
         currentStepIdxV3 = 0;
         if(newNode){
             delete newNode;
             newNode = nullptr;
         }
-        historyV3.clear();
+        for(auto &clone:historyV3) delete clone; historyV3.clear();
         for(auto& garbage:garbageV3) delete garbage;
         garbageV3.clear();
         setColorALVTree(rootV3, sf::Color::White);
@@ -721,44 +763,6 @@ void deleteVisualization3(sf::RenderWindow& window){
         scriptV3.push_back({{}, nullptr, -1, "Deleted!", StepTypeV3::FINISH});
         isCalculatingHistoryV3 = true;
         firstTime = true;
-
-        if(fakerootV3 == nullptr){
-            std::cout << "nubacachi~" << std::endl;
-        }
-        else{
-            std::cout << "chicabanu~" << std::endl;
-        }
-
-        for(int i = 0; i < scriptV3.size(); i++){
-            AnimationStepV3 step = scriptV3[i];
-            if(step.type == StepTypeV3::INITIALIZE){
-                std::cout << "initialize\n";
-            }
-            if(step.type == StepTypeV3::NEW_NODE){
-                std::cout << "new node\n";
-            }
-            if(step.type == StepTypeV3::INSERT){
-                std::cout << "insert\n";
-            }
-            if(step.type == StepTypeV3::DELETE){
-                std::cout << "delete\n";
-            }
-            if(step.type == StepTypeV3::TRAVERSE){
-                std::cout << "traverse\n";
-            }
-            if(step.type == StepTypeV3::UPDATE){
-                std::cout << "update\n";
-            }
-            if(step.type == StepTypeV3::ROTATE_LEFT_LEFT){
-                std::cout << "rotate left left\n";
-            }
-            if(step.type == StepTypeV3::ROTATE_RIGHT_RIGHT){
-                std::cout << "rotate right right\n";
-            }
-            if(step.type == StepTypeV3::FINISH){
-                std::cout << "finish\n";
-            }
-        }
     }
 }
 
@@ -778,7 +782,6 @@ bool checkNextStepV3(float limitTime, Block* rootV3, Block* newNode) {
 
     if(isWaitingV3){ 
         delayTimerV3 += dealtaTime.asSeconds() * dtV3; 
-        std::cout << "**********************************" << delayTimerV3 << "\n";
         if (delayTimerV3 >= limitTime) { 
             isWaitingV3 = false;
             delayTimerV3 = 0;

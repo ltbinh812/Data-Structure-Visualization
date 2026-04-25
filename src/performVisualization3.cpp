@@ -28,14 +28,10 @@ Block* cloneVisualization3::cloneNodeV3(Block* originalNode, std::map<Block*, Bl
     
     clonedNode -> pLeft = cloneNodeV3(originalNode->pLeft, visited);
     clonedNode -> pRight = cloneNodeV3(originalNode->pRight, visited);
-    std::cout << "clone node: " << clonedNode -> getLabel() << "\n";
-    if(clonedNode -> pLeft) std::cout << clonedNode -> getLabel() << " left: " << clonedNode -> pLeft -> getLabel() << "\n";
-    if(clonedNode -> pRight) std::cout << clonedNode -> getLabel() << " right: " << clonedNode -> pRight -> getLabel() << "\n";
     return clonedNode;
 }
 cloneVisualization3::cloneVisualization3(Block* root, Block* newNode, const AnimationStepV3& stepV3) {    
     std::map<Block*, Block*> visited;
-    std::cout << "-------------------------\n";
 
     this->rootV3 = cloneNodeV3(root, visited);
     this->newNode = cloneNodeV3(newNode, visited);
@@ -48,7 +44,6 @@ cloneVisualization3::cloneVisualization3(Block* root, Block* newNode, const Anim
     if(stepV3.deletedNode){
         cloneNodeV3(stepV3.deletedNode, visited);
     }
-    std::cout << "*********************************\n";
 }
 
 void cloneVisualization3::pull(std::vector<Block*>& dummySet, 
@@ -64,10 +59,8 @@ void cloneVisualization3::pull(std::vector<Block*>& dummySet,
 
     // clone -> dummy
     // live -> dummy
-    std::cout << "$$$$$$$$$$$$pull:\n";
     for (auto const& [cloneNode, liveNode] : this->mapping) {
         Block* dummyNode = new Block(*cloneNode);
-        std::cout << "dummy node: " << dummyNode -> getLabel() << "\n";
         dummySet.push_back(dummyNode);
         cloneToDummy[cloneNode] = dummyNode;         
         if (liveNode != nullptr) {
@@ -94,8 +87,6 @@ void cloneVisualization3::pull(std::vector<Block*>& dummySet,
 
     this -> outDummyRoot = (this->rootV3 != nullptr) ? cloneToDummy[this->rootV3] : nullptr;
     this -> outDummyNewNode = (this->newNode != nullptr) ? cloneToDummy[this->newNode] : nullptr;
-    std::cout << "outDummyNewNode: " << (this -> outDummyNewNode ? this -> outDummyNewNode -> getLabel() : "null") << "\n";
-    std::cout << "outDummyRoot: " << (this -> outDummyRoot ? this -> outDummyRoot -> getLabel() : "null") << "\n";
 }
 
 cloneVisualization3::~cloneVisualization3() {
@@ -115,39 +106,9 @@ void runV3(sf::RenderWindow& window){
     if(currentStepIdxV3 == -1 || currentStepIdxV3 >= scriptV3.size()) return;
     AnimationStepV3 step = scriptV3[currentStepIdxV3];
     if(currentStepIdxV3 > 0 && firstTime && scriptV3[currentStepIdxV3 - 1].setWhiteNode){
-        std::cout << "??]?\n";
         if(isCalculatingHistoryV3) scriptV3[currentStepIdxV3 - 1].setWhiteNode -> setFillColor(scriptV3[currentStepIdxV3 - 1].historyColor);
         else liveToDummyMapV3[scriptV3[currentStepIdxV3 - 1].setWhiteNode] -> setFillColor(scriptV3[currentStepIdxV3 - 1].historyColor);
     }
-    std::cout << "???" <<  currentStepIdxV3 << " " << firstTime <<  std::endl;
-    if(step.type == StepTypeV3::INITIALIZE){
-        std::cout << "initialize\n";
-    }
-    if(step.type == StepTypeV3::NEW_NODE){
-        std::cout << "new node\n";
-    }
-    if(step.type == StepTypeV3::INSERT){
-        std::cout << "insert\n";
-    }
-    if(step.type == StepTypeV3::DELETE){
-        std::cout << "delete 1\n";
-    }
-    if(step.type == StepTypeV3::TRAVERSE){
-        std::cout << "traverse\n";
-    }
-    if(step.type == StepTypeV3::UPDATE){
-        std::cout << "update\n";
-    }
-    if(step.type == StepTypeV3::ROTATE_LEFT_LEFT){
-        std::cout << "rotate left left\n";
-    }
-    if(step.type == StepTypeV3::ROTATE_RIGHT_RIGHT){
-        std::cout << "rotate right right\n";
-    }
-    if(step.type == StepTypeV3::FINISH){
-        std::cout << "finish\n";
-    }
-    std::cout << scriptV3.size() << " " << currentStepIdxV3 << std::endl;
     static sf::Color temp_color = sf::Color::White;
     if(step.type == StepTypeV3::TRAVERSE){
         Block* node1 = step.focusNode;
@@ -157,7 +118,6 @@ void runV3(sf::RenderWindow& window){
         
         if(firstTime){
             firstTime = false;
-            std::cout << "TRAVERSE " << node1 -> getLabel() << "\n";
             temp_color = node1 -> getFillColor();
             if(isCalculatingHistoryV3) scriptV3[currentStepIdxV3].historyColor = node1 -> getFillColor();
             if(step.focusNodeVal == 1) node1 -> setFillColor(sf::Color(255, 140, 105));
@@ -172,7 +132,6 @@ void runV3(sf::RenderWindow& window){
 
         if(isCalculatingHistoryV3 || checkNextStepV3(0.5f, node3, node2)){
             if(step.focusNodeVal != 3 && step.focusNodeVal != 4 && step.focusNodeVal != 5){
-                // node1 -> setFillColor(temp_color);
                 temp_color = sf::Color::White;
             }
             currentStepIdxV3++;
@@ -191,14 +150,12 @@ void runV3(sf::RenderWindow& window){
         if(firstTime){
             firstTime = false;
             node2 = step.focusNode;
-            // if(isCalculatingHistoryV3) newNode = step.focusNode;
             node1 -> setFillColor(sf::Color::Green);
             node1 -> currentPosition = {100.f, 300.f};
             node1 -> targetPosition = {100.f, 300.f};
             node1 -> setPosition(node1 -> currentPosition);
         }
         
-        // std::cout << "?2\n"; 
         drawAVLTree(node3, window);
         
         if(!isCalculatingHistoryV3) node1->draw(window);
@@ -211,7 +168,6 @@ void runV3(sf::RenderWindow& window){
         }
     }
     else if(step.type == StepTypeV3::INSERT){
-        std::cout << "insert 1\n";
         Block* node1 = step.focusNode;
         Block* &node2 = (!isCalculatingHistoryV3) ? historyV3[currentStepIdxV3] -> outDummyNewNode : newNode;
         Block* &node3 = (!isCalculatingHistoryV3) ? historyV3[currentStepIdxV3] -> outDummyRoot : rootV3;
@@ -220,19 +176,15 @@ void runV3(sf::RenderWindow& window){
         if(firstTime){
             firstTime = false;
             if(step.focusNodeVal == -1){
-                // std::cout << step.focusNode -> getLabel() << "->" << newNode -> getLabel() << std::endl;
                 node1 -> pLeft = node2;
             }
             else if(step.focusNodeVal == 1){
-                // std::cout << step.focusNode -> getLabel() << "->" << newNode -> getLabel() << std::endl;
                 node1 -> pRight = node2;
             }
             else{
                 node3 = node2;
-                // if(isCalculatingHistoryV3) rootV3 = newNode;
             }
             node2 = nullptr;
-            // if(isCalculatingHistoryV3) newNode = nullptr;
        }
         calculateAllPos(node3, getHeight(node3), 1, WINDOW_WIDTH / 2, 300.f);
         drawAVLTree(node3, window);
@@ -258,7 +210,6 @@ void runV3(sf::RenderWindow& window){
         Block* &cloneNode6 = (!isCalculatingHistoryV3) ? historyV3[currentStepIdxV3] -> outDummyRoot : rootV3;
 
         if(firstTime){
-            std::cout << "rotate left left 1\n";
             firstTime = false;
 
             Block* prenode = nullptr;
@@ -291,7 +242,6 @@ void runV3(sf::RenderWindow& window){
 
             if(!clonePrenode){
                 cloneNode6 = cloneNode2;
-                // if(isCalculatingHistoryV3) rootV3 = node2;
             }
             else if(step.focusNodeVal == -1) clonePrenode -> pLeft = cloneNode2;
             else if( step.focusNodeVal == 1) clonePrenode -> pRight = cloneNode2;
@@ -322,7 +272,6 @@ void runV3(sf::RenderWindow& window){
         Block* &cloneNode6 = (!isCalculatingHistoryV3) ? historyV3[currentStepIdxV3] -> outDummyRoot : rootV3;
 
         if(firstTime){
-            std::cout << "rotate right right 1\n";
             firstTime = false;
 
             Block* prenode = nullptr;
@@ -355,10 +304,8 @@ void runV3(sf::RenderWindow& window){
 
 
 
-            std::cout << "rotate right right 1.5\n";
             if(!clonePrenode){
                 cloneNode6 = cloneNode2;
-                // if(isCalculatingHistoryV3) rootV3 = node2;
             }
             else if(step.focusNodeVal == -1) clonePrenode -> pLeft = cloneNode2;
             else if( step.focusNodeVal == 1) clonePrenode -> pRight = cloneNode2;
@@ -416,7 +363,6 @@ void runV3(sf::RenderWindow& window){
             }
             else{
                 node6 = cloneChild;
-                // if(isCalculatingHistoryV3) rootV3 = child;
             }
 
             
@@ -425,9 +371,7 @@ void runV3(sf::RenderWindow& window){
                 cloneNode -> pRight = cloneReplaceNode -> pRight;
                 *cloneReplaceNode = *cloneNode;
             }
-            else
-                std::cout << "?";
-
+  
             if(isCalculatingHistoryV3){
                 garbageV3.push_back(cloneNode);
             }
@@ -435,9 +379,7 @@ void runV3(sf::RenderWindow& window){
 
             calculateAllPos(node6, getHeight(node6), 1, WINDOW_WIDTH / 2, 300.f);
         }
-        std::cout << ">\n";
         drawAVLTree(node6, window);
-        std::cout << ">\n";
         if(isCalculatingHistoryV3 || checkNextStepV3(0.75f, node6, node5)){
             currentStepIdxV3++;
             if(!isCalculatingHistoryV3) historyV3[currentStepIdxV3]->pull(dummySetV3, liveToDummyMapV3);
@@ -488,7 +430,6 @@ void runV3(sf::RenderWindow& window){
         // drawAVLTree(rootV3, window);
         choosePrevNextButton = 0;
         firstTime = true;
-        std::cout << "finish\n";
     }
 }
 
@@ -521,13 +462,10 @@ void performVisualization3(sf::RenderWindow& window) {
         historyV3[0]->pull(dummySetV3, liveToDummyMapV3);
         firstTime = true;
     }
-    std::cout << "currentStepIdxV3: " << currentStepIdxV3 << " " << scriptV3.size() << std::endl;
     if(isStepByStep) {
         if(choosePrevNextButton == -1 && currentStepIdxV3 > 0){
             currentStepIdxV3--;
-            std::cout << "before pull: \n";
             historyV3[currentStepIdxV3]->pull(dummySetV3, liveToDummyMapV3);
-            std::cout << "after pull: \n";
             choosePrevNextButton = 0;
             firstTime = true;
         }
@@ -542,9 +480,6 @@ void performVisualization3(sf::RenderWindow& window) {
             choosePrevNextButton = 0;
         }
         if(choosePrevNextButton == 0){
-            // std::cout << currentStepIdxV3;
-            // std::cout << ": outDummyRoot: " << ((historyV3[currentStepIdxV3]->outDummyRoot) ? historyV3[currentStepIdxV3]->outDummyRoot->getLabel() : "null");
-            // std::cout << " outDummyNewNode: " << ((historyV3[currentStepIdxV3]->outDummyNewNode) ? historyV3[currentStepIdxV3]->outDummyNewNode->getLabel() : "null") << std::endl; 
             if(currentStepIdxV3 > 0)    drawCodeHighlightPanel(3, currentStepIdxV3 - 1, isStepByStep, checkFinishedV3(), scriptV3[currentStepIdxV3 - 1].activeLines);
             else                        drawCodeHighlightPanel(3, currentStepIdxV3 - 1, isStepByStep, checkFinishedV3(), {});
             drawAVLTree(historyV3[currentStepIdxV3]->outDummyRoot, window);

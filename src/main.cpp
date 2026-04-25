@@ -121,17 +121,17 @@ int main() {
         return -1;
     }
     sf::Texture Test4;
-    if (!Test4.loadFromFile("assets/LinkedListImage.jpg")) {
+    if (!Test4.loadFromFile("assets/trie.png")) {
         cerr << "Failed to load Test4" << endl;
         return -1;
     }
     sf::Texture Test5;
-    if (!Test5.loadFromFile("assets/LinkedListImage.jpg")) {
+    if (!Test5.loadFromFile("assets/dijkstra.jpg")) {
         cerr << "Failed to load Test5" << endl;
         return -1;
     }
     sf::Texture Test6;
-    if (!Test6.loadFromFile("assets/LinkedListImage.jpg")) {
+    if (!Test6.loadFromFile("assets/kruskal.jpg")) {
         cerr << "Failed to load Test6" << endl;
         return -1;
     }
@@ -140,17 +140,14 @@ int main() {
     Card card1(Test1, "Singly linked list", "Linked list", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT / 2.f));
     Card card2(Test2, "Heap", "Tree", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f));
     Card card3(Test3, "AVL Tree", "Tree", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT / 2.f));
-    Card card4(Test4, "Queue", "Queue", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
-    Card card5(Test5, "Binary tree", "Tree", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
-    Card card6(Test6, "Graph", "Graph", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
-
-    Text test("*Hinh anh chi mang tinh chat minh hoa=)*", style2);
-    test.setPosition(WINDOW_WIDTH / 2.f, 200.f);
+    Card card4(Test4, "Trie", "Tree", sf::Vector2f(WINDOW_WIDTH / 4.f - 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
+    Card card5(Test5, "Dijkstra", "Graph", sf::Vector2f(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
+    Card card6(Test6, "Kruskal", "Graph", sf::Vector2f(WINDOW_WIDTH * 3.f / 4.f + 125.f, WINDOW_HEIGHT * 3.f / 4.f + 250.f));
 
 
     vector<Text> MainMenu_Texts{
         Text("Data Structure Visualizer", style1),
-        test
+        Text("Developed by Le Tien Binh", style2)
         // card1Text,
         // card1Tab,
         // card2Text,
@@ -187,6 +184,11 @@ int main() {
         card6
     };
 
+    vector<sf::Texture> MainMenu_Textures{
+        darkModeTexture,
+        lightModeTexture
+    };
+
     vector<sf::Texture> Global_Textures{
         homeTexture,
         darkModeTexture,
@@ -197,11 +199,10 @@ int main() {
     };
 
     auto applyCameraConstraints = [&]() {
-        // TÍNH TOÁN LẠI SAFE BORDER LIÊN TỤC MỖI KHI HÀM ĐƯỢC GỌI
-        float paddingLeft = 200.0f;   // Lề trái 
-        float paddingRight = 600.0f;  // Lề phải (Rộng hơn để chừa chỗ cho bảng Code Highlight)
-        float paddingTop = 300.0f;    // Lề trên
-        float paddingBottom = 500.0f; // Lề dưới (Chừa chỗ cho thanh Control Panel)
+        float paddingLeft = 200.0f;    
+        float paddingRight = 600.0f;  
+        float paddingTop = 300.0f;    
+        float paddingBottom = 500.0f; 
         float curSafeMinX = minX - paddingLeft;
         float curSafeMaxX = maxX + paddingRight;
         float curSafeMinY = minY - paddingTop;
@@ -215,17 +216,13 @@ int main() {
         float mapWidth = curSafeMaxX - curSafeMinX;
         float mapHeight = curSafeMaxY - curSafeMinY;
 
-        // Xử lý kẹp trục X
         if (size.x >= mapWidth) {
-            // Nếu khung nhìn to hơn cả bản đồ -> Căn giữa bản đồ luôn
             center.x = curSafeMinX + mapWidth / 2.0f;
         } else {
-            // Nếu bình thường -> Đụng vách nào ép lùi về vách đó
             if (center.x - halfW < curSafeMinX) center.x = curSafeMinX + halfW;
             if (center.x + halfW > curSafeMaxX) center.x = curSafeMaxX - halfW;
         }
 
-        // Xử lý kẹp trục Y
         if (size.y >= mapHeight) {
             center.y = curSafeMinY + mapHeight / 2.0f;
         } else {
@@ -261,14 +258,17 @@ int main() {
         
 
             if(appState == AppState::MAIN_MENU){
+                ImGui::SFML::ProcessEvent(window, *event);
                 if (event->is<sf::Event::MouseWheelScrolled>()) {
-                    if(previousState != appState) scrollY = 0.f;
+                    if(previousState != appState){
+                        scrollY = 0.f;
+                        cameraView = window.getDefaultView();
+                    }
                     float step = (event->getIf<sf::Event::MouseWheelScrolled>()->delta > 0 ? -1 : 1) * scrollSpeed; 
                     scrollY += step;
                     if(scrollY < 0.f) scrollY = 0.f;
                     else if(scrollY > MAX_SCROLL_Y) scrollY = MAX_SCROLL_Y;
                     else cameraView.move({0.f, step});
-                    // cout << "Scroll Y: " << scrollY << endl;
                     break;
                 }
                 handleMainMenuEvents(*event, window, cameraView, MainMenu_Cards);
@@ -285,64 +285,49 @@ int main() {
                     ImGui::SFML::ProcessEvent(window, *event);
                     
                     if (ImGui::GetIO().WantCaptureMouse) continue; 
-                    std::cout << "main.cpp\n";
-                    // 1. TÍNH NĂNG ZOOM (Dùng hàm getIf<T> để trích xuất dữ liệu cuộn chuột)
                     if (const auto* scrolled = event->getIf<sf::Event::MouseWheelScrolled>()) {
-                        // Lưu ý: SFML 3.0 đổi tên Enum thành sf::Mouse::Wheel::Vertical
                         if (scrolled->wheel == sf::Mouse::Wheel::Vertical) { 
                             float zoomFactor = 1.0f;
-                            if (scrolled->delta > 0) zoomFactor = 0.9f;      // Lăn lên -> Phóng to
-                            else if (scrolled->delta < 0) zoomFactor = 1.1f; // Lăn xuống -> Thu nhỏ
+                            if (scrolled->delta > 0) zoomFactor = 0.9f; 
+                            else if (scrolled->delta < 0) zoomFactor = 1.1f; 
                             sf::Vector2f currentSize = cameraView.getSize();
                             sf::Vector2f newSize = currentSize * zoomFactor;
 
-                            // -- ĐỊNH NGHĨA KÍCH THƯỚC TRẦN VÀ SÀN --
-                           // -- ĐỊNH NGHĨA KÍCH THƯỚC TRẦN VÀ SÀN --
-                            float minViewWidth = 300.0f; // Zoom In kịch kim là khung 300x300
+                            float minViewWidth = 300.0f; 
                             float minViewHeight = 300.0f;
                             
-                                // CẬP NHẬT TRỰC TIẾP TỪ BIẾN TOÀN CỤC
-                            float paddingLeft = 200.0f;   // Lề trái 
-                            float paddingRight = 600.0f;  // Lề phải (Rộng hơn để chừa chỗ cho bảng Code Highlight)
-                            float paddingTop = 300.0f;    // Lề trên
-                            float paddingBottom = 500.0f; // Lề dưới (Chừa chỗ cho thanh Control Panel)                            float maxViewWidth = (maxX + currentPadding) - (minX - currentPadding); 
+                            float paddingLeft = 200.0f; 
+                            float paddingRight = 600.0f;
+                            float paddingTop = 300.0f;
+                            float paddingBottom = 500.0f; 
                             float maxViewWidth = (maxX + paddingRight) - (minX - paddingLeft); 
                             float maxViewHeight = (maxY + paddingBottom) - (minY - paddingTop);
-                            // -- TÍNH TOÁN ÉP ZOOM FACTOR --
                             if (newSize.x < minViewWidth || newSize.y < minViewHeight) {
-                                // Ép dừng zoom in
                                 zoomFactor = std::max(minViewWidth / currentSize.x, minViewHeight / currentSize.y);
                             } 
                             else if (newSize.x > maxViewWidth || newSize.y > maxViewHeight) {
-                                // Ép dừng zoom out
                                 zoomFactor = std::min(maxViewWidth / currentSize.x, maxViewHeight / currentSize.y);
                             }
 
                             cameraView.zoom(zoomFactor);
                             
-                            // Lỡ có dính viền khi zoom ra thì ép nó đẩy vào trong lại
                             applyCameraConstraints();
                         }
                     }
 
-                    // 2. TÍNH NĂNG PAN (Kéo chuột)
-                    
-                    // Bắt sự kiện: Bấm chuột xuống
                     if (const auto* pressed = event->getIf<sf::Event::MouseButtonPressed>()) {
-                        if (pressed->button == sf::Mouse::Button::Right) { // SFML 3.0 Enum mới
+                        if (pressed->button == sf::Mouse::Button::Right) { 
                             isDragging = true;
                             oldMousePos = window.mapPixelToCoords(pressed->position, cameraView);
                         }
                     }
 
-                    // Bắt sự kiện: Nhả chuột ra
                     if (const auto* released = event->getIf<sf::Event::MouseButtonReleased>()) {
                         if (released->button == sf::Mouse::Button::Right) {
                             isDragging = false;
                         }
                     }
 
-                    // Bắt sự kiện: Di chuyển chuột
 
                     if (const auto* moved = event->getIf<sf::Event::MouseMoved>()) {
                         if (isDragging) {
@@ -351,11 +336,8 @@ int main() {
                             
                             cameraView.move(delta);
                             
-                            // Ép camera dội ngược lại nếu người dùng cố tình kéo lố ra ngoài biển
                             applyCameraConstraints();
 
-                            // QUAN TRỌNG: Cập nhật lại tọa độ chuột theo Camera ĐÃ ĐƯỢC ÉP VỀ
-                            // (Nếu thiếu dòng này, kéo trúng viền là camera sẽ bị giật cục/kẹt cứng)
                             oldMousePos = window.mapPixelToCoords(moved->position, cameraView);
                         }
                     }   
@@ -365,11 +347,10 @@ int main() {
             }
         }
 
-        // SFML
 
         
         if(appState == AppState::VISUALIZATION1){
-            // window.clear(sf::Color(255, 255, 255)); // Màu nền trắng cho phần visualization
+            // window.clear(sf::Color(255, 255, 255)); 
             window.clear(sfmlBgColor);
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
@@ -379,7 +360,7 @@ int main() {
         }
   
         if(appState == AppState::VISUALIZATION2){
-            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            window.clear(sfmlBgColor); 
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
 
@@ -388,7 +369,7 @@ int main() {
         }
 
         if(appState == AppState::VISUALIZATION3){
-            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            window.clear(sfmlBgColor); 
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
 
@@ -397,7 +378,7 @@ int main() {
         }
 
         if(appState == AppState::VISUALIZATION4){
-            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            window.clear(sfmlBgColor); 
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
 
@@ -406,7 +387,7 @@ int main() {
         }
 
         if(appState == AppState::VISUALIZATION5){
-            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            window.clear(sfmlBgColor); 
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
             graphPhysics.updatePhysics(dealtaTime.asSeconds());
@@ -416,7 +397,7 @@ int main() {
         }
 
         if(appState == AppState::VISUALIZATION6){
-            window.clear(sfmlBgColor); // Màu nền trắng cho phần visualization
+            window.clear(sfmlBgColor); 
             ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
             graphPhysics.updatePhysics(dealtaTime.asSeconds());
@@ -426,11 +407,13 @@ int main() {
         }
 
         if(appState == AppState::MAIN_MENU){
-            // cameraView.setCenter(WINDOW_WIDTH / 2.f, WINDOW_HEIGHT / 2.f + scrollY);
-            window.clear(sf::Color(192,192,192)); // Màu nền tối cho chuyên nghiệp
+            sf::Color menuBgColor = isDarkMode ? sf::Color(15, 18, 25) : sf::Color(245, 247, 250);
+            window.clear(menuBgColor);
+            ImGui::SFML::Update(window, dealtaTime);
             window.setView(cameraView);
 
-            drawMainMenu(window, MainMenu_Texts, MainMenu_Buttons, MainMenu_Images, MainMenu_Cards);
+            drawMainMenu(window, MainMenu_Texts, MainMenu_Buttons, MainMenu_Images, MainMenu_Cards, MainMenu_Textures, sfmlBgColor);
+            ImGui::SFML::Render(window);
         }
 
         window.display();    

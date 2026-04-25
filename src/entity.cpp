@@ -343,38 +343,54 @@ Card::Card(sf::Texture& texture, std::string title, std::string tabName, sf::Vec
     tabBg.setPosition(pos.x - 212.5f, pos.y + 110.f);
 }
 
+void Card::updateTheme(bool isDark) {
+    sf::Color baseBg, baseOutline, baseTitleBg, baseTitleText;
+    
+    if (isDark) {
+        baseBg = sf::Color(20, 30, 50, 255);
+        baseOutline = sf::Color(0, 191, 255, 255);
+        baseTitleBg = sf::Color(30, 45, 75, 255);
+        baseTitleText = sf::Color(240, 248, 255, 255);
+    } else {
+        baseBg = sf::Color(255, 255, 255, 255);
+        baseOutline = sf::Color(173, 216, 230, 255);
+        baseTitleBg = sf::Color(230, 242, 255, 255);
+        baseTitleText = sf::Color(10, 40, 80, 255);
+    }
+
+    sf::Color baseTabBg = sf::Color(46, 188, 210, 255);
+    sf::Color baseTabText = style3.fillColor; 
+    sf::Color baseImage = sf::Color::White;
+
+    if (background.isHovered) {
+        background.setoutline(10, sf::Color(188, 188, 188, 255));
+        background.setFillColor(baseBg - sf::Color(0, 0, 0, 50));
+        titleBg.setFillColor(baseTitleBg - sf::Color(0, 0, 0, 50));
+        titleText.setFillColor(baseTitleText - sf::Color(0, 0, 0, 50));
+        
+        tabBg.setFillColor(baseTabBg - sf::Color(0, 0, 0, 50));
+        tabText.setFillColor(baseTabText - sf::Color(0, 0, 0, 50));
+        image.setFillColor(baseImage - sf::Color(0, 0, 0, 50));
+    } else {
+        background.setoutline(2, baseOutline);
+        background.setFillColor(baseBg);
+        titleBg.setFillColor(baseTitleBg);
+        titleText.setFillColor(baseTitleText);
+        
+        tabBg.setFillColor(baseTabBg);
+        tabText.setFillColor(baseTabText);
+        image.setFillColor(baseImage);
+    }
+}
+
 void Card::handleEvent(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView){
     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window), cameraView);    
     sf::FloatRect cardBounds = background.getGlobalBounds();
+    
     if (cardBounds.contains(mousePos)) {
-        if(!background.isHovered){
-            background.isHovered = true;
-            
-            background.setoutline(10, sf::Color(188, 188, 188, 255));
-            background.setFillColor(background.getFillColor() - sf::Color(0, 0, 0, 50));
-            titleBg.setFillColor(titleBg.getFillColor() - sf::Color(0, 0, 0, 50));
-            tabBg.setFillColor(tabBg.getFillColor() - sf::Color(0, 0, 0, 50));
-
-            titleText.setFillColor(titleText.getFillColor() - sf::Color(0, 0, 0, 50));
-            tabText.setFillColor(tabText.getFillColor() - sf::Color(0, 0, 0, 50));
-
-            image.setFillColor(image.getFillColor() - sf::Color(0, 0, 0, 50));
-        }
-    }
-    else{
-        if(background.isHovered){
-            background.isHovered = false;
-            
-            background.setoutline(0, sf::Color::Transparent);
-            background.setFillColor(background.getFillColor() + sf::Color(0, 0, 0, 50));
-            titleBg.setFillColor(titleBg.getFillColor() + sf::Color(0, 0, 0, 50));
-            tabBg.setFillColor(tabBg.getFillColor() + sf::Color(0, 0, 0, 50));
-
-            titleText.setFillColor(titleText.getFillColor() + sf::Color(0, 0, 0, 50));
-            tabText.setFillColor(tabText.getFillColor() + sf::Color(0, 0, 0, 50));
-
-            image.setFillColor(image.getFillColor() + sf::Color(0, 0, 0, 50));
-        }
+        background.isHovered = true;
+    } else {
+        background.isHovered = false;
     }
 }
 
@@ -390,7 +406,6 @@ bool Card::clicked(const sf::Event& event, sf::RenderWindow& window, sf::View& c
         }
     }
     
-    // Luôn trả về false nếu không click trúng để tránh lỗi "control reaches end..."
     return false; 
 }
 
@@ -406,54 +421,43 @@ void Card::draw(sf::RenderWindow& window){
 
 
 void Notification::trigger(std::string text){
-    // 1. Thiết lập nội dung và Font
-
     if (message == nullptr) {
-        // SFML 3.0: Phải truyền Font vào lúc new
         message = new sf::Text(style5.font, text, style5.characterSize);
     } else {
         message->setString(text);
     }
 
-    // 2. Tự ép size cho Box (Auto-fit)
     auto textRect = message->getLocalBounds();
     float paddingX = 60.f; 
     float paddingY = 30.f;
     box.setSize({ textRect.size.x + paddingX, textRect.size.y + paddingY });
 
-    // 3. Set Nền màu da & Viền đỏ (Theo ý Bình)
-    box.setFillColor(sf::Color(255, 230, 200, 255)); // Màu Peach/Skin nhẹ
-    box.setOutlineColor(sf::Color(200, 0, 0));      // Viền đỏ Crimson
+    box.setFillColor(sf::Color(255, 230, 200, 255)); 
+    box.setOutlineColor(sf::Color(200, 0, 0));      
     box.setOutlineThickness(3.f);
 
-    // 4. CĂN TÂM (Origin Center - SFML 3.0 Style)
-    // Formula: position + size / 2
     box.setOrigin(box.getLocalBounds().position + box.getLocalBounds().size / 2.f);
     message->setOrigin(message->getLocalBounds().position + message->getLocalBounds().size / 2.f);
 
-    // 5. Tính toán vị trí Ẩn/Hiện (Góc dưới phải)
     float margin = 20.f;
-    // Vị trí đích (nằm trên ControlPanel)
     visiblePos = { (box.getSize().x / 2.f) + margin, 
                    WINDOW_HEIGHT - (box.getSize().y / 2.f) - margin -  350.f };
     
-    // Vị trí ẩn (đẩy hẳn sang phải màn hình)
     hiddenPos = { - (box.getSize().x / 2.f) - margin - 10.f, visiblePos.y };
 
-    // 6. Kích hoạt trạng thái
     if (state == NotifyState::HIDDEN) {
         currentPos = hiddenPos;
         box.setPosition(currentPos);
     }
     
     state = NotifyState::SLIDING_IN;
-    timer = 0.0f; // Reset thời gian chờ 2s
+    timer = 0.0f; 
 }
 
 void Notification::draw(sf::RenderWindow& window) {
     if (state != NotifyState::HIDDEN) {
         window.draw(box);
-        if (message) window.draw(*message); // Vẽ nội dung của con trỏ
+        if (message) window.draw(*message); 
     }
 }
 

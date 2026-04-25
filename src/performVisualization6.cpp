@@ -29,7 +29,6 @@ void cloneVisualization6::pull(std::vector<int>& liveVisitedEdge,
                                std::vector<bool>& liveVisitedNode, 
                                std::vector<Block*>& liveNodes) 
 { 
-    std::cout << "$$$$$$$$$$$$ Pulling Kruskal State by Index:\n";
 
     liveVisitedEdge = this->visitedEdgeSnapshot;
     liveVisitedNode = this->visitedNodeSnapshot;
@@ -37,45 +36,12 @@ void cloneVisualization6::pull(std::vector<int>& liveVisitedEdge,
     for (size_t i = 0; i < liveNodes.size(); ++i) {
         Block* node = liveNodes[i];
         node->setFillColor(this->nodeColors[i]);
-        // if (liveDist[i] == INT_MAX) { 
-        //     node->setSubLabel("INF"); 
-        // } else {
-        //     node->setSubLabel(std::to_string(liveDist[i]));
-        // }
     }
     
 }
 
 void runV6(sf::RenderWindow& window) {
     AnimationStepV6 step = scriptV6[currentStepIdxV6];
-
-
-    if(step.type == StepTypeV6::INITIALIZE) {
-        std::cout << "initialize\n";
-    }
-    if(step.type == StepTypeV6::CHOOSE_EDGE) {
-        std::cout << "CHOOSE_EDGE\n";
-    }
-    if(step.type == StepTypeV6::NOT_CHOOSE_EDGE) {
-        std::cout << "NOT_CHOOSE_EDGE\n";
-    }
-    if(step.type == StepTypeV6::CHOOSE_VERTEX) {
-        std::cout << "CHOOSE_VERTEX\n";
-    }
-    if(step.type == StepTypeV6::FINISH) {
-        std::cout << "finish\n";
-    }
-    if(step.type == StepTypeV6::TRAVERSE_VERTEX) {
-        std::cout << "TRAVERSE_VERTEX\n";
-    }
-    if(step.type == StepTypeV6::TRAVERSE_EDGE) {
-        std::cout << "TRAVERSE_EDGE\n";
-    }
-    if(step.type == StepTypeV6::HIGHLIGHT_1) {
-        std::cout << "HIGHLIGHT_1\n";
-    }
-
-    std::cout << scriptV6.size() << " " << currentStepIdxV6 << std::endl;
 
 
     if(step.type == StepTypeV6::TRAVERSE_EDGE) {
@@ -170,7 +136,6 @@ void getPosV6() {
 void performVisualization6(sf::RenderWindow& window) {
     if(currentStepIdxV6 == -1 || currentStepIdxV6 >= scriptV6.size()) return;
     if(isCalculatingHistoryV6){
-        std::cout << "---" << minX << " " << maxX << " " << minY << " " << maxY << std::endl;
         resetRectangleMinMax();
         currentStepIdxV6 = 0;
         firstTime = true;
@@ -189,16 +154,11 @@ void performVisualization6(sf::RenderWindow& window) {
         currentStepIdxV6 = 0;
         historyV6[0]->pull(visitedEdgeV6, visitedNodeV6, graphPhysics.getNodes());
         firstTime = true;
-        std::cout << "---" << minX << " " << maxX << " " << minY << " " << maxY << std::endl;
     }
-    // std::cout << "currentStepIdxV6: " << currentStepIdxV6 << " " << scriptV6.size() << std::endl;
-    // std::cout << "size" << graphPhysics.getNodes().size() << std::endl;
     if(isStepByStep) {
         if(choosePrevNextButton == -1 && currentStepIdxV6 > 0){
             currentStepIdxV6--;
-            std::cout << "before pull: \n";
             historyV6[currentStepIdxV6]->pull(visitedEdgeV6, visitedNodeV6, graphPhysics.getNodes());
-            std::cout << "after pull: \n";
             choosePrevNextButton = 0;
             firstTime = true;
         }
@@ -227,7 +187,6 @@ void performVisualization6(sf::RenderWindow& window) {
 }
 
 bool checkFinishedV6() {
-    std::cout << currentStepIdxV6 << " " << scriptV6.size() << std::endl;
     return currentStepIdxV6 == -1 || currentStepIdxV6 + 1== scriptV6.size();
 }
 

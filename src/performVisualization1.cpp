@@ -7,7 +7,6 @@
 #include "highlight.h"
 #include "theme.h"
 
-// struct cloneVisualization1 
 cloneVisualization1::cloneVisualization1(std::vector<Block*> linkedList, Block* newNode) {
     for(Block* node : linkedList) {
         Block* newCloneNode = new Block(*node);
@@ -17,11 +16,6 @@ cloneVisualization1::cloneVisualization1(std::vector<Block*> linkedList, Block* 
         Block* newCloneNode = new Block(*newNode);
         this->newNode = newCloneNode;
     }
-    std::cout << "***********clone linked list\n";
-    for(Block* node : this -> linkedList) {
-        std::cout << node->getLabel() << " ";
-    }
-    std::cout << "\n";
 }
 
 void cloneVisualization1::pull(std::vector<Block*>& linkedList, Block*& newNode) {
@@ -71,19 +65,6 @@ bool checkFinishedV1(){
 
 void runV1(sf::RenderWindow& window){
     AnimationStepV1& step = scriptV1[currentStepIdxV1];
-    std::cout << "size: " <<  scriptV1.size() << "\n";
-    if(step.type == StepTypeV1::NEW_NODE){
-        std::cout << "NEW NODE\n";
-    }
-    if(step.type == StepTypeV1::INSERT){
-        std::cout << "INSERT\n";
-    }
-    if(step.type == StepTypeV1::TRAVERSE){
-        std::cout << "TRAVERSE\n";
-    }
-    if(step.type == StepTypeV1::FINISH){
-        std::cout << "FINISH\n";
-    }
 
     
     if(step.type == StepTypeV1::NEW_NODE){
@@ -119,21 +100,14 @@ void runV1(sf::RenderWindow& window){
         }
     }
     else if(step.type == StepTypeV1::INSERT){
-        std::cout << "?1\n";
         if(newNode){
-            std::cout << "#1\n";
-            std::cout << scriptV1[currentStepIdxV1].focusNodeIdx << " " << linkedList.size() << "\n";
             linkedList.insert(linkedList.begin() + scriptV1[currentStepIdxV1].focusNodeIdx, newNode);
-            std::cout << "#2\n";
             linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> setFillColor(sf::Color::Green);
-            std::cout << "#3\n";
         }
         newNode = nullptr;
-        std::cout << "?2\n";
         for(int i = 0; i < linkedList.size(); ++i){
             linkedList[i]->targetPosition = {200.f + i * 150.f, 300.f};
         }
-        std::cout << "?3\n";
         drawLinkedList(window);
         if(!isCalculatingHistoryV1) drawPointer(window, linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> center() + sf::Vector2f(0.f, -50.f), "pointer/" + std::to_string(scriptV1[currentStepIdxV1].focusNodeIdx));
         if(isCalculatingHistoryV1 || checkNextStepV1(0.5f)){
@@ -143,7 +117,6 @@ void runV1(sf::RenderWindow& window){
             choosePrevNextButton = 0;
             firstTime = true;
         }
-        std::cout << "?4\n";
     }
     else if(step.type == StepTypeV1::DELETE_1){
         for(int i = 0; i < linkedList.size(); ++i){
@@ -239,7 +212,6 @@ void runV1(sf::RenderWindow& window){
     }
     else if(step.type == StepTypeV1::HIGHLIGHT_2){ // traverse, insert
         drawLinkedList(window);
-        // if(!isCalculatingHistoryV1) drawPointer(window, linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> center() + sf::Vector2f(0.f, -50.f), "pointer/" + std::to_string(scriptV1[currentStepIdxV1].focusNodeIdx));
         if(newNode)
             if(!isCalculatingHistoryV1) newNode -> draw(window);
         
@@ -272,12 +244,9 @@ void runV1(sf::RenderWindow& window){
         }
     }
     else if(step.type == StepTypeV1::FINISH){
-        std::cout << linkedList.size() << std::endl;
         if(!isCalculatingHistoryV1) historyV1[currentStepIdxV1]->pull(linkedList, newNode);
         choosePrevNextButton = 0;
         firstTime = true;
-        // drawLinkedList(window);
-        // drawPointer(window, linkedList[scriptV1[currentStepIdxV1].focusNodeIdx] -> center() + sf::Vector2f(0.f, -50.f), "pointer/" + std::to_string(scriptV1[currentStepIdxV1].focusNodeIdx));
     }
 
 
@@ -309,28 +278,13 @@ void performVisualization1(sf::RenderWindow& window){
         currentStepIdxV1 = 0;
         historyV1[0]->pull(linkedList, newNode);
         firstTime = true;
-
-        std::cout << "????????????????\n";
-        for(int i=0; i<scriptV1.size(); i++){
-            std::cout << "step " << i << ": ";
-            for(Block* node : historyV1[i]->linkedList) {
-                std::cout << node->getLabel() << " ";
-            }
-            std::cout << std::endl;
-            std::cout << "newNode: ";
-            if(historyV1[i]->newNode) std::cout << historyV1[i]->newNode->getLabel() << "\n";
-            else std::cout << "nullptr\n";
-        }
-
     }
 
 
     if(isStepByStep) {
         if(choosePrevNextButton == -1 && currentStepIdxV1 > 0){
             currentStepIdxV1--;
-            std::cout << "before pull: \n";
             historyV1[currentStepIdxV1]->pull(linkedList, newNode);
-            std::cout << "after pull: \n";
             choosePrevNextButton = 0;
             firstTime = true;
         }

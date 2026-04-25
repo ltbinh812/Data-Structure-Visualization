@@ -9,6 +9,8 @@
 #include "main.h"
 #include "draw.h"
 #include "theme.h"
+#include "importFile.h"
+
 
 float dtV1 = 1.0f;
 std::vector<Block*> linkedList;
@@ -31,11 +33,11 @@ void initStatus1(){
     scriptV1.push_back({{}, -1, -1, "", StepTypeV1::FINISH}); 
     currentStepIdxV1 = 0;
     isCalculatingHistoryV1 = false;
-    historyV1.clear();
+    for(auto &clone:historyV1) delete clone; historyV1.clear();
     historyV1.push_back(new cloneVisualization1(linkedList, newNode));
 
     // draw.cpp
-    Log = nullptr;
+    showImLog = false;
     delayLog = 0;
     o = INITIALIZE;
     isStepByStep = false;
@@ -58,7 +60,7 @@ void initVisualization1(sf::RenderWindow& window) {
     ImGui::Text("A[] = "); 
     ImGui::SameLine(); 
 
-    static char inputBuffer[256] = ""; 
+    static char inputBuffer[15000] = ""; 
 
     ImGui::SetNextItemWidth(-1.0f); 
     ImGui::InputTextWithHint("##array_input", "Example: 1 2 3 4 5", inputBuffer, IM_ARRAYSIZE(inputBuffer));
@@ -77,21 +79,56 @@ void initVisualization1(sf::RenderWindow& window) {
         temp = true;
     }
     ImGui::SameLine();
+    if ((isStepByStep || checkFinishedV1()) && ImGui::Button("Load File", ImVec2(150.0f, 30))) {
+        std::string fileContent = openAndReadFile();
+        if (!fileContent.empty()) {
+            strncpy(inputBuffer, fileContent.c_str(), sizeof(inputBuffer) - 1);
+            inputBuffer[sizeof(inputBuffer) - 1] = '\0'; 
+            temp = true; 
+        }
+    }
+    ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
-
         std::string data(inputBuffer);
         std::stringstream ss(data);
-        int value;
+        std::string token; 
         std::vector<int> newElements;
-        while (ss >> value) newElements.push_back(value);
+        bool isValidInput = true; 
 
+        while (ss >> token) {
+            try {
+                size_t parsedChars;
+                int value = std::stoi(token, &parsedChars);
+                if (parsedChars != token.length() || value < -999 || value > 999) {
+                    isValidInput = false;
+                    break; 
+                }
+                newElements.push_back(value);
+                if (newElements.size() > 999) { 
+                    isValidInput = false;
+                    break; 
+                }
+            } 
+            catch (const std::exception&) {
+                isValidInput = false;
+                break; 
+            }
+        }
+        
+        if (!isValidInput) {
+            setLog("Invalid input!");
+            temp = false;
+            return;
+        }
+
+        
         if (!newElements.empty()) {
             for(auto node:linkedList){
                 delete node;
             }
             linkedList.clear();
             scriptV1.clear();
-            historyV1.clear();
+            for(auto &clone:historyV1) delete clone; historyV1.clear();
             currentStepIdxV1 = 0;
             if(newNode){
                 delete newNode;
@@ -101,7 +138,6 @@ void initVisualization1(sf::RenderWindow& window) {
             scriptV1.push_back({{21}, -1, newElements[0], "", StepTypeV1::NEW_NODE});
             scriptV1.push_back({{22}, 0, -1, "", StepTypeV1::INSERT});
             for (int i = 1; i < newElements.size(); i++) {
-                std::cout << newElements[i] << " ";
                 scriptV1.push_back({{24}, -1, newElements[i], "", StepTypeV1::NEW_NODE});
                 scriptV1.push_back({{25}, i, -1, "", StepTypeV1::INSERT});
             }
@@ -121,7 +157,7 @@ void initVisualization1(sf::RenderWindow& window) {
         scriptV1.clear();
         scriptV1.push_back({{}, -1, -1, "", StepTypeV1::FINISH});
         currentStepIdxV1 = 0;
-        historyV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
         isCalculatingHistoryV1 = true;
         firstTime = true;
     }
@@ -131,10 +167,10 @@ void insertVisualization1(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Insert an element into the linked list:");
     ImGui::Spacing();
 
-    static char positionBuffer[256] = ""; 
-    static char valueBuffer[256] = "";
-    static char headValueBuffer[256] = "";
-    static char tailValueBuffer[256] = "";
+    static char positionBuffer[15000] = ""; 
+    static char valueBuffer[15000] = "";
+    static char headValueBuffer[15000] = "";
+    static char tailValueBuffer[15000] = "";
     bool temp = false;
 
     ImGui::TextColored(title2Color, "Insert a value to the top of the linked list:");
@@ -150,20 +186,42 @@ void insertVisualization1(sf::RenderWindow& window) {
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm##Head", ImVec2(125.0f, 30)))) {
         temp = false;
-        int value = std::stoi(headValueBuffer);
+        std::string data(headValueBuffer);
+        std::stringstream ss(data);
+        std::string token, extra;
+        
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
+        }
+
+        int value = 0;
+        try {
+            size_t parsedChars;
+            value = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+        
         int pos = 0;
         historyV1.back()->pull(linkedList, newNode);
         for(auto node:linkedList) node->setFillColor(sf::Color::White);
         scriptV1.clear();
-        historyV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
         currentStepIdxV1 = 0;
         if(newNode){
             delete newNode;
             newNode = nullptr;
         }
-        scriptV1.push_back({{31}, -1, value, "Khởi tạo Node mới với giá trị " + std::to_string(value), StepTypeV1::NEW_NODE});
-        scriptV1.push_back({{34, 35}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::INSERT});
-        scriptV1.push_back({{}, pos, -1, "Hoàn tất thao tác chèn!", StepTypeV1::FINISH});
+        scriptV1.push_back({{31}, -1, value, "", StepTypeV1::NEW_NODE});
+        scriptV1.push_back({{34, 35}, pos, -1, "", StepTypeV1::INSERT});
+        scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
         isCalculatingHistoryV1 = true;
         firstTime = true;
     }
@@ -181,12 +239,33 @@ void insertVisualization1(sf::RenderWindow& window) {
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm##Tail", ImVec2(125.0f, 30)))) {
         temp = false;
-        int value = std::stoi(tailValueBuffer);
+        std::string data(tailValueBuffer);
+        std::stringstream ss(data);
+        std::string token, extra;
+        
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
+        }
+
+        int value = 0;
+        try {
+            size_t parsedChars;
+            value = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
         int pos = linkedList.size();
         historyV1.back()->pull(linkedList, newNode);
         for(auto node:linkedList) node->setFillColor(sf::Color::White);
         scriptV1.clear();
-        historyV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
         currentStepIdxV1 = 0;
         if(newNode){
             delete newNode;
@@ -199,12 +278,12 @@ void insertVisualization1(sf::RenderWindow& window) {
             scriptV1.push_back({{41}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});            
         }
         if(pos > 0){
-            scriptV1.push_back({{44,45}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::INSERT});
-            scriptV1.push_back({{}, pos, -1, "Hoàn tất thao tác chèn!", StepTypeV1::FINISH});
+            scriptV1.push_back({{44,45}, pos, -1, "", StepTypeV1::INSERT});
+            scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
         }
         else{
-            scriptV1.push_back({{34,35}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::INSERT});
-            scriptV1.push_back({{}, pos, -1, "Hoàn tất thao tác chèn!", StepTypeV1::FINISH});
+            scriptV1.push_back({{34,35}, pos, -1, "", StepTypeV1::INSERT});
+            scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
         }        
         isCalculatingHistoryV1 = true;
         firstTime = true;
@@ -224,7 +303,6 @@ void insertVisualization1(sf::RenderWindow& window) {
     // ImGui::Spacing();
 
     // ImGui::SameLine(90.0f);
-    printf("currentStepIdxV1: %d\n", currentStepIdxV1);
     if ((checkFinishedV1() || isStepByStep) && ImGui::Button("Random##Pos", ImVec2(100.0f, 30))){
         int position = rand() % (linkedList.size() + 1);
         std::string positionStr = std::to_string(position);
@@ -239,48 +317,57 @@ void insertVisualization1(sf::RenderWindow& window) {
         temp = true;
     }
     ImGui::SameLine();
-    if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm##Pos", ImVec2(125.0f, 30)))) {
-        temp = false;
-        std::string positionStr(positionBuffer);
-        std::string valueStr(valueBuffer);
-        historyV1.back()->pull(linkedList, newNode);
+    if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm##Pos", ImVec2(125.0f, 30)))) {temp = false;
+        std::string posStr(positionBuffer);
+        std::string valStr(valueBuffer);
+        std::stringstream ssPos(posStr), ssVal(valStr);
+        std::string tokenPos, extraPos, tokenVal, extraVal;
+
+        if (!(ssPos >> tokenPos) || !(ssVal >> tokenVal)) return;
+        if ((ssPos >> extraPos) || (ssVal >> extraVal)) {
+            setLog("Invalid input!");
+            return;
+        }
+
+        int pos = 0, value = 0;
+        try {
+            size_t pPos, pVal;
+            pos = std::stoi(tokenPos, &pPos);
+            value = std::stoi(tokenVal, &pVal);
             
-        if (positionStr != "" && valueStr != "") {
-            if(std::stoi(positionStr) > linkedList.size()){
-                if(!Log){
-                    setLog("Indexed out of range");
-                    delayLog = 0;
-                }
+            if (pPos != tokenPos.length() || pVal != tokenVal.length() || 
+                pos < 0 || pos > linkedList.size() || 
+                value < -999 || value > 999) {
+                setLog("Invalid input!");
                 return;
             }
-            int value = std::stoi(valueStr);
-            int pos = std::stoi(positionStr);
-            
-
-            for(auto node:linkedList) node->setFillColor(sf::Color::White);
-            scriptV1.clear();
-            historyV1.clear();
-            currentStepIdxV1 = 0;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            scriptV1.push_back({{31}, -1, value, "Khởi tạo Node mới với giá trị " + std::to_string(value), StepTypeV1::NEW_NODE});
-            for (int i = 0; i < pos; i++){
-                scriptV1.push_back({{40}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});            
-                scriptV1.push_back({{41}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});            
-            }
-            if(pos > 0){
-                scriptV1.push_back({{44,45}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::INSERT});
-                scriptV1.push_back({{}, pos, -1, "Hoàn tất thao tác chèn!", StepTypeV1::FINISH});
-            }
-            else{
-                scriptV1.push_back({{34,35}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::INSERT});
-                scriptV1.push_back({{}, pos, -1, "Hoàn tất thao tác chèn!", StepTypeV1::FINISH});
-            }        
-            isCalculatingHistoryV1 = true;
-            firstTime = true;
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
         }
+        for(auto node:linkedList) node->setFillColor(sf::Color::White);
+        scriptV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
+        currentStepIdxV1 = 0;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        scriptV1.push_back({{31}, -1, value, "Khởi tạo Node mới với giá trị " + std::to_string(value), StepTypeV1::NEW_NODE});
+        for (int i = 0; i < pos; i++){
+            scriptV1.push_back({{40}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});            
+            scriptV1.push_back({{41}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});            
+        }
+        if(pos > 0){
+            scriptV1.push_back({{44,45}, pos, -1, "", StepTypeV1::INSERT});
+            scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
+        }
+        else{
+            scriptV1.push_back({{34,35}, pos, -1, "", StepTypeV1::INSERT});
+            scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
+        }        
+        isCalculatingHistoryV1 = true;
+        firstTime = true;
     }   
 }
 
@@ -288,7 +375,7 @@ void insertVisualization1(sf::RenderWindow& window) {
 void deleteVisualization1(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Delete an element from the linked list:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the position to delete:");
     ImGui::SameLine();
@@ -305,47 +392,57 @@ void deleteVisualization1(sf::RenderWindow& window) {
     }
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
-        int pos;
         temp = false;
         std::string data(inputBuffer);
-        historyV1.back()->pull(linkedList, newNode);
-            
-        if (data != "") {
-            if(std::stoi(data) >= linkedList.size()){
-                if(!Log){
-                    setLog("Indexed out of range");
-                    return;
-                }
-            }
-            pos = std::stoi(data);
-            for(auto node:linkedList) node->setFillColor(sf::Color::White);
-            scriptV1.clear();
-            historyV1.clear();
-            currentStepIdxV1 = 0;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            for(int i=0; i<pos; i++){
-                scriptV1.push_back({{59}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});
-                scriptV1.push_back({{60}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});
-            }
-            if(pos > 0){
-                scriptV1.push_back({{65}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_1});
-                scriptV1.push_back({{66, 67}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_2});
-            }
-            else{
-                scriptV1.push_back({{{52}}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_1});
-                scriptV1.push_back({{53, 54}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_2});                
-            }
-            scriptV1.push_back({{}, pos - 1, -1, "Hoàn tất thao tác xóa!", StepTypeV1::FINISH});
-            isCalculatingHistoryV1 = true;
-            firstTime = true;
-            firstTime = true;
+        std::stringstream ss(data);
+        std::string token, extra;
+        
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
         }
+
+        int pos = 0;
+        try {
+            size_t parsedChars;
+            pos = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || pos < 0 || pos >= linkedList.size()) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+
+        for(auto node:linkedList) node->setFillColor(sf::Color::White);
+        scriptV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
+        currentStepIdxV1 = 0;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        for(int i=0; i<pos; i++){
+            scriptV1.push_back({{59}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});
+            scriptV1.push_back({{60}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});
+        }
+        if(pos > 0){
+            scriptV1.push_back({{65}, pos, -1, "", StepTypeV1::DELETE_1});
+            scriptV1.push_back({{66, 67}, pos, -1, "", StepTypeV1::DELETE_2});
+        }
+        else{
+            scriptV1.push_back({{{52}}, pos, -1, "", StepTypeV1::DELETE_1});
+            scriptV1.push_back({{53, 54}, pos, -1, "", StepTypeV1::DELETE_2});                
+        }
+        scriptV1.push_back({{}, pos - 1, -1, "", StepTypeV1::FINISH});
+        isCalculatingHistoryV1 = true;
+        firstTime = true;
+        firstTime = true;
     }
 
-    static char inputBufferVal[256] = "";
+    static char inputBufferVal[15000] = "";
 
     ImGui::Spacing();
     ImGui::Text("Enter the value to delete:");
@@ -363,54 +460,68 @@ void deleteVisualization1(sf::RenderWindow& window) {
     }
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm##value", ImVec2(125.0f, 30)))) {
-        int value;
+        temp = false;
         std::string data(inputBufferVal);
-        historyV1.back()->pull(linkedList, newNode);
-            
-        if (data != "") {
-            value = std::stoi(data);
-            for(auto node:linkedList) node->setFillColor(sf::Color::White);
-            scriptV1.clear();
-            historyV1.clear();
-            currentStepIdxV1 = 0;
-            isCalculatingHistoryV1 = true;
-            firstTime = true;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            if(linkedList.empty()){
-                scriptV1.push_back({{71}, -1, -1, "Khoâng tìm thấy vị trí cô với giá trị bằng " + std::to_string(value), StepTypeV1::HIGHLIGHT_1});
-                scriptV1.push_back({{}, -1, -1, "Khoâng tìm thấy vị trí cô với giá trị bằng " + std::to_string(value), StepTypeV1::FINISH});
-                return;
-            }
-            int pos = -1;
-            for(int i=0; i<linkedList.size(); i++) if(linkedList[i]->getLabel() == std::to_string(value)){pos = i; break;}
-            if(pos == -1){
-                std::cout << "HEREEEEEEEEE\n";
-                for(int i = 0; i<linkedList.size(); i++){
-                    scriptV1.push_back({{79}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});
-                    scriptV1.push_back({{80}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});                    
-                }
-                scriptV1.push_back({{}, - 1, -1, "Hoàn tất thao tác xóa!", StepTypeV1::FINISH});
-                return;
-            }
-            for(int i=0; i<pos; i++){
-                scriptV1.push_back({{79}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});
-                scriptV1.push_back({{80}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});
-            }
-            if(pos > 0){
-                scriptV1.push_back({{83}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_1});
-                scriptV1.push_back({{84,85}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_2});
-            }
-            else{
-                scriptV1.push_back({{{72}}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_1});
-                scriptV1.push_back({{73,74,75}, pos, -1, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::DELETE_2});                
-            }
-            scriptV1.push_back({{}, pos - 1, -1, "Hoàn tất thao tác xóa!", StepTypeV1::FINISH});
+        std::stringstream ss(data);
+        std::string token, extra;
+        
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
         }
-    }
 
+        int value = 0;
+        try {
+            size_t parsedChars;
+            value = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+        for(auto node:linkedList) node->setFillColor(sf::Color::White);
+        scriptV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
+        currentStepIdxV1 = 0;
+        isCalculatingHistoryV1 = true;
+        firstTime = true;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        if(linkedList.empty()){
+            scriptV1.push_back({{71}, -1, -1, "", StepTypeV1::HIGHLIGHT_1});
+            scriptV1.push_back({{}, -1, -1, "", StepTypeV1::FINISH});
+            return;
+        }
+        int pos = -1;
+        for(int i=0; i<linkedList.size(); i++) if(linkedList[i]->getLabel() == std::to_string(value)){pos = i; break;}
+        if(pos == -1){
+            for(int i = 0; i<linkedList.size(); i++){
+                scriptV1.push_back({{79}, i, -1, "", StepTypeV1::TRAVERSE});
+                scriptV1.push_back({{80}, i, -1, "", StepTypeV1::HIGHLIGHT_2});                    
+            }
+            scriptV1.push_back({{}, - 1, -1, "", StepTypeV1::FINISH});
+            return;
+        }
+        for(int i=0; i<pos; i++){
+            scriptV1.push_back({{79}, i, -1, "", StepTypeV1::TRAVERSE});
+            scriptV1.push_back({{80}, i, -1, "", StepTypeV1::HIGHLIGHT_2});
+        }
+        if(pos > 0){
+            scriptV1.push_back({{83}, pos, -1, "", StepTypeV1::DELETE_1});
+            scriptV1.push_back({{84,85}, pos, -1, "", StepTypeV1::DELETE_2});
+        }
+        else{
+            scriptV1.push_back({{{72}}, pos, -1, "", StepTypeV1::DELETE_1});
+            scriptV1.push_back({{73,74,75}, pos, -1, "", StepTypeV1::DELETE_2});                
+        }
+        scriptV1.push_back({{}, pos - 1, -1, "", StepTypeV1::FINISH});
+    }
 }
 
 void updateVisualization1(sf::RenderWindow& window) {
@@ -418,7 +529,7 @@ void updateVisualization1(sf::RenderWindow& window) {
     ImGui::Spacing();
 
 
-    static char posBuffer[256], valueBuffer[256] = "";
+    static char posBuffer[15000], valueBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the position to update:");
     ImGui::SameLine();
@@ -445,47 +556,60 @@ void updateVisualization1(sf::RenderWindow& window) {
     }
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
-        int pos, value;
+        temp = false;
         std::string posStr(posBuffer);
-        std::string valueStr(valueBuffer);
-        historyV1.back()->pull(linkedList, newNode);
-            
-        if(posStr != "" && valueStr != ""){
-            if(std::stoi(posStr) >= linkedList.size()){
-                if(!Log){
-                    setLog("Indexed out of range");
-                    return;
-                }
-            }
-            pos = std::stoi(posStr);
-            value = std::stoi(valueStr);
-            for(auto node:linkedList) node->setFillColor(sf::Color::White);
-            scriptV1.clear();
-            historyV1.clear();
-            currentStepIdxV1 = 0;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            for(int i=0; i<pos; i++){
-                scriptV1.push_back({{91}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});
-                scriptV1.push_back({{96}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});
-            }
-            scriptV1.push_back({{91}, pos, -1, "Đang duyệt tới vị trí " + std::to_string(pos), StepTypeV1::TRAVERSE});
-            scriptV1.push_back({{92}, pos, -1, "Đang duyệt tới vị trí " + std::to_string(pos), StepTypeV1::HIGHLIGHT_2});
-        
-            scriptV1.push_back({{93}, pos, value, "Thực hiện thay đổi liên kết (Next pointer)", StepTypeV1::UPDATE});
-            scriptV1.push_back({{}, pos, -1, "Hoàn tất thao tác cập nhật!", StepTypeV1::FINISH});
-            isCalculatingHistoryV1 = true;
-            firstTime = true;
+        std::string valStr(valueBuffer);
+        std::stringstream ssPos(posStr), ssVal(valStr);
+        std::string tokenPos, extraPos, tokenVal, extraVal;
+
+        if (!(ssPos >> tokenPos) || !(ssVal >> tokenVal)) return;
+        if ((ssPos >> extraPos) || (ssVal >> extraVal)) {
+            setLog("Invalid input!");
+            return;
         }
+
+        int pos = 0, value = 0;
+        try {
+            size_t pPos, pVal;
+            pos = std::stoi(tokenPos, &pPos);
+            value = std::stoi(tokenVal, &pVal);
+            
+            if (pPos != tokenPos.length() || pVal != tokenVal.length() || 
+                pos < 0 || pos >= linkedList.size() || 
+                value < -999 || value > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+        for(auto node:linkedList) node->setFillColor(sf::Color::White);
+        scriptV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
+        currentStepIdxV1 = 0;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        for(int i=0; i<pos; i++){
+            scriptV1.push_back({{91}, i, -1, "", StepTypeV1::TRAVERSE});
+            scriptV1.push_back({{96}, i, -1, "", StepTypeV1::HIGHLIGHT_2});
+        }
+        scriptV1.push_back({{91}, pos, -1, "", StepTypeV1::TRAVERSE});
+        scriptV1.push_back({{92}, pos, -1, "", StepTypeV1::HIGHLIGHT_2});
+    
+        scriptV1.push_back({{93}, pos, value, "", StepTypeV1::UPDATE});
+        scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
+        isCalculatingHistoryV1 = true;
+        firstTime = true;
     }
 }
 
 void searchVisualization1(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Search for an element in the linked list:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the value to search (example: 5):");
     ImGui::SameLine();
@@ -503,35 +627,54 @@ void searchVisualization1(sf::RenderWindow& window) {
     }
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
+        temp = false;
         std::string data(inputBuffer);
-
-        if (data != "") {
-            historyV1.back()->pull(linkedList, newNode);
-            for(int i=0; i<linkedList.size(); i++) linkedList[i]->setFillColor(sf::Color::White);
-            scriptV1.clear();
-            historyV1.clear();
-            currentStepIdxV1 = 0;
-            if(newNode){
-                delete newNode;
-                newNode = nullptr;
-            }
-            int i = 0;
-            for(i=0; i<linkedList.size(); i++){
-                scriptV1.push_back({{102}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::TRAVERSE});
-                if(linkedList[i]->getLabel() == data) break;
-                scriptV1.push_back({{104}, i, -1, "Đang duyệt tới vị trí " + std::to_string(i), StepTypeV1::HIGHLIGHT_2});
-            }
-            if(i < linkedList.size()){
-                scriptV1.push_back({{103}, i, std::stoi(data), "Tìm thấy lớp hướng với bội giải thức", StepTypeV1::SEARCH_1});
-                scriptV1.push_back({{}, i, -1, "Hoàn tất thao tác tìm kiếm!", StepTypeV1::FINISH});
-            }
-            else{
-                scriptV1.push_back({{106}, -1, -1, "Không tìm thấy lớp hướng với bội giải thức", StepTypeV1::SEARCH_2});
-                scriptV1.push_back({{}, -1, -1, "Hoàn tất thao tác tìm kiếm!", StepTypeV1::FINISH});
-            }
-            isCalculatingHistoryV1 = true;
-            firstTime = true;
+        std::stringstream ss(data);
+        std::string token, extra;
+        
+        if (!(ss >> token)) return;
+        if (ss >> extra) {
+            setLog("Invalid input!");
+            return;
         }
+
+        int searchValue = 0;
+        try {
+            size_t parsedChars;
+            searchValue = std::stoi(token, &parsedChars);
+            if (parsedChars != token.length() || searchValue < -999 || searchValue > 999) {
+                setLog("Invalid input!");
+                return;
+            }
+        } catch (const std::exception&) {
+            setLog("Invalid input!");
+            return;
+        }
+        historyV1.back()->pull(linkedList, newNode);
+        for(int i=0; i<linkedList.size(); i++) linkedList[i]->setFillColor(sf::Color::White);
+        scriptV1.clear();
+        for(auto &clone:historyV1) delete clone; historyV1.clear();
+        currentStepIdxV1 = 0;
+        if(newNode){
+            delete newNode;
+            newNode = nullptr;
+        }
+        int i = 0;
+        for(i=0; i<linkedList.size(); i++){
+            scriptV1.push_back({{102}, i, -1, "", StepTypeV1::TRAVERSE});
+            if(linkedList[i]->getLabel() == data) break;
+            scriptV1.push_back({{104}, i, -1, "", StepTypeV1::HIGHLIGHT_2});
+        }
+        if(i < linkedList.size()){
+            scriptV1.push_back({{103}, i, std::stoi(data), "", StepTypeV1::SEARCH_1});
+            scriptV1.push_back({{}, i, -1, "", StepTypeV1::FINISH});
+        }
+        else{
+            scriptV1.push_back({{106}, -1, -1, "", StepTypeV1::SEARCH_2});
+            scriptV1.push_back({{}, -1, -1, "", StepTypeV1::FINISH});
+        }
+        isCalculatingHistoryV1 = true;
+        firstTime = true;
     }
 }
 
@@ -540,21 +683,17 @@ void searchVisualization1(sf::RenderWindow& window) {
 bool checkNextStepV1(float limitTime) {
     isWaitingV1 = true;
     if (newNode && checkMove(newNode)) isWaitingV1 = false;
-    // std::cout << isWaitingV1 << std::endl;
     for (Block* node : linkedList) {
         if (checkMove(node)) {
             isWaitingV1 = false;
             break;  
         }
     }
-    // std::cout << isWaitingV1 << std::endl;
     if(isWaitingV1){ 
         delayTimerV1 += dealtaTime.asSeconds() * dtV1; 
-        std::cout << "**********************************" << delayTimerV1 << "\n";
         if (delayTimerV1 >= limitTime) { 
             isWaitingV1 = false;
             delayTimerV1 = 0;
-            // std::cout << "return true\n";
             return true; 
         }
     }
@@ -564,7 +703,6 @@ bool checkNextStepV1(float limitTime) {
 
 
 void drawLinkedList(sf::RenderWindow& window) {
-    std::cout << "check1\n";
     for (int i=0; i<linkedList.size(); i++) {
         linkedList[i]->move(dtV1, isCalculatingHistoryV1);
         if(!isCalculatingHistoryV1) linkedList[i]->draw(window);

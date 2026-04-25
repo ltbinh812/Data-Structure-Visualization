@@ -23,31 +23,22 @@ Block* cloneVisualization4::cloneNodeV4(Block* originalNode, std::map<Block*, Bl
     Block* clonedNode = new Block(*originalNode);
     mapping[clonedNode] = originalNode;
     visited[originalNode] = clonedNode;
-    std::cout << "clone node: " << clonedNode -> getLabel() << "\n";
     
     for(auto const& child : originalNode->children) {
-        std::cout << "children: " << child.second -> getLabel() << "\n";
         clonedNode->children[child.first] = cloneNodeV4(child.second, visited);
     }
     return clonedNode;
 }
 cloneVisualization4::cloneVisualization4(Block* root, Block* newNode, const AnimationStepV4& stepV4) {    
     std::map<Block*, Block*> visited;
-    std::cout << "-------------------------\n";
-    std::cout << "root:\n";
     this->rootV4 = cloneNodeV4(root, visited);
-    std::cout << "newNode:\n";
     this->newNode = cloneNodeV4(newNode, visited);
     if(stepV4.focusNode){
-        std::cout << "focusNode:\n";
         cloneNodeV4(stepV4.focusNode, visited);
     }
     if(stepV4.focusAnotherNode){
-        std::cout << "focusAnotherNode:\n";
         cloneNodeV4(stepV4.focusAnotherNode, visited);
     }
-
-    std::cout << "*********************************\n";
 }
 
 void cloneVisualization4::pull(std::vector<Block*>& dummySet, 
@@ -63,10 +54,8 @@ void cloneVisualization4::pull(std::vector<Block*>& dummySet,
 
     // clone -> dummy
     // live -> dummy
-    std::cout << "$$$$$$$$$$$$pull:\n";
     for (auto const& [cloneNode, liveNode] : this->mapping) {
         Block* dummyNode = new Block(*cloneNode);
-        std::cout << "dummy node: " << dummyNode -> getLabel() << "\n";
         dummySet.push_back(dummyNode);
         cloneToDummy[cloneNode] = dummyNode;         
         if (liveNode != nullptr) {
@@ -85,8 +74,6 @@ void cloneVisualization4::pull(std::vector<Block*>& dummySet,
 
     this -> outDummyRoot = (this->rootV4 != nullptr) ? cloneToDummy[this->rootV4] : nullptr;
     this -> outDummyNewNode = (this->newNode != nullptr) ? cloneToDummy[this->newNode] : nullptr;
-    std::cout << "outDummyNewNode: " << (this -> outDummyNewNode ? this -> outDummyNewNode -> getLabel() : "null") << "\n";
-    std::cout << "outDummyRoot: " << (this -> outDummyRoot ? this -> outDummyRoot -> getLabel() : "null") << "\n";
 }
 
 cloneVisualization4::~cloneVisualization4() {
@@ -100,29 +87,6 @@ cloneVisualization4::~cloneVisualization4() {
 
 void runV4(sf::RenderWindow& window) {
     AnimationStepV4 step = scriptV4[currentStepIdxV4];
-
-
-    if(step.type == StepTypeV4::INITIALIZE) {
-        std::cout << "initialize\n";
-    }
-    if(step.type == StepTypeV4::NEW_NODE) {
-        std::cout << "new node\n";
-    }
-    if(step.type == StepTypeV4::INSERT) {
-        std::cout << "insert\n";
-    }
-    if(step.type == StepTypeV4::DELETE) {
-        std::cout << "delete\n";
-    }
-    if(step.type == StepTypeV4::TRAVERSE) {
-        std::cout << "traverse\n";
-    }
-    if(step.type == StepTypeV4::FINISH) {
-        std::cout << "finish\n";
-    }
-
-    std::cout << scriptV4.size() << " " << currentStepIdxV4 << std::endl;
-
     if(step.type == StepTypeV4::TRAVERSE){
         Block* node1 = step.focusNode;
         Block* node2 = (!isCalculatingHistoryV4) ? historyV4[currentStepIdxV4] -> outDummyNewNode : newNode;
@@ -167,7 +131,6 @@ void runV4(sf::RenderWindow& window) {
         }
         drawTrie(node2, window, node2);
         if(!isCalculatingHistoryV4 && node1) node1 -> draw(window);
-        std::cout << "end new node\n";
         if(isCalculatingHistoryV4 || checkNextStepV4(0.5f, node2, node1)){
             currentStepIdxV4++;
             if(!isCalculatingHistoryV4) historyV4[currentStepIdxV4]->pull(dummySetV4, liveToDummyMapV4);
@@ -224,10 +187,6 @@ void runV4(sf::RenderWindow& window) {
             if(node3 -> value == 0){
                 if(node4)
                     node4 -> children.erase(node3 -> getLabel()[0]);
-                // delete step.focusNode;
-                std::cout << "##### delete step.focusNode\n";
-                std::cout << node3 << "\n";
-                std::cout << node3 -> getLabel() << std::endl;
                 if(isCalculatingHistoryV4) garbageV4.push_back(node3);
             }
             currentStepIdxV4++;
@@ -302,7 +261,6 @@ void getPosV4(Block* node) {
 void performVisualization4(sf::RenderWindow& window) {
     if(currentStepIdxV4 == -1 || currentStepIdxV4 >= scriptV4.size()) return;
     if(isCalculatingHistoryV4){
-        std::cout << "---" << minX << " " << maxX << " " << minY << " " << maxY << std::endl;
         resetRectangleMinMax();
         currentStepIdxV4 = 0;
         firstTime = true;
@@ -321,15 +279,11 @@ void performVisualization4(sf::RenderWindow& window) {
         currentStepIdxV4 = 0;
         historyV4[0]->pull(dummySetV4, liveToDummyMapV4);
         firstTime = true;
-        std::cout << "---" << minX << " " << maxX << " " << minY << " " << maxY << std::endl;
     }
-    std::cout << "currentStepIdxV4: " << currentStepIdxV4 << " " << scriptV4.size() << std::endl;
     if(isStepByStep) {
         if(choosePrevNextButton == -1 && currentStepIdxV4 > 0){
             currentStepIdxV4--;
-            std::cout << "before pull: \n";
             historyV4[currentStepIdxV4]->pull(dummySetV4, liveToDummyMapV4);
-            std::cout << "after pull: \n";
             choosePrevNextButton = 0;
             firstTime = true;
         }
@@ -344,9 +298,6 @@ void performVisualization4(sf::RenderWindow& window) {
             choosePrevNextButton = 0;
         }
         if(choosePrevNextButton == 0){
-            // std::cout << currentStepIdxV4;
-            // std::cout << ": outDummyRoot: " << ((historyV4[currentStepIdxV4]->outDummyRoot) ? historyV4[currentStepIdxV4]->outDummyRoot->getLabel() : "null");
-            // std::cout << " outDummyNewNode: " << ((historyV4[currentStepIdxV4]->outDummyNewNode) ? historyV4[currentStepIdxV4]->outDummyNewNode->getLabel() : "null") << std::endl; 
             if(currentStepIdxV4 > 0)    drawCodeHighlightPanel(4, currentStepIdxV4 - 1, isStepByStep, checkFinishedV4(), scriptV4[currentStepIdxV4 - 1].activeLines);
             else                        drawCodeHighlightPanel(4, currentStepIdxV4 - 1, isStepByStep, checkFinishedV4(), {});
             drawTrie(historyV4[currentStepIdxV4]->outDummyRoot, window, historyV4[currentStepIdxV4]->outDummyRoot);
@@ -367,7 +318,6 @@ void performVisualization4(sf::RenderWindow& window) {
 }
 
 bool checkFinishedV4() {
-    std::cout << currentStepIdxV4 << " " << scriptV4.size() << std::endl;
     return currentStepIdxV4 == -1 || currentStepIdxV4 + 1== scriptV4.size();
 }
 

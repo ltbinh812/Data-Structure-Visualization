@@ -19,26 +19,32 @@ void handleMainMenuEvents(const sf::Event& event, sf::RenderWindow& window, sf::
     }
 
     if(cards[0].clicked(event, window, cameraView)){
+        window.setView(window.getDefaultView());
         initStatus1();
         appState = AppState::VISUALIZATION1;
     }
     if(cards[1].clicked(event, window, cameraView)){
+        window.setView(window.getDefaultView());
         initStatus2();
         appState = AppState::VISUALIZATION2;
     }
     if(cards[2].clicked(event, window, cameraView)){
+        window.setView(window.getDefaultView());
         initStatus3();
         appState = AppState::VISUALIZATION3;
     }
     if(cards[3].clicked(event, window, cameraView)){
+        window.setView(window.getDefaultView());
         initStatus4();
         appState = AppState::VISUALIZATION4;
     }
     if(cards[4].clicked(event, window, cameraView)){
+        window.setView(window.getDefaultView());
         initStatus5();
         appState = AppState::VISUALIZATION5;
     }
     if(cards[5].clicked(event, window, cameraView)){
+        window.setView(window.getDefaultView());
         initStatus6();
         appState = AppState::VISUALIZATION6;
     }

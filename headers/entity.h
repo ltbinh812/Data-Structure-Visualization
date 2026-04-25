@@ -118,6 +118,7 @@ private:
 public:
     Card() = default;
     Card(sf::Texture& texture, std::string title, std::string tabName, sf::Vector2f pos);
+    void updateTheme(bool isDark);
     void handleEvent(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView);
     bool clicked(const sf::Event& event, sf::RenderWindow& window, sf::View& cameraView);
     void draw(sf::RenderWindow& window);

@@ -6,6 +6,5 @@ vcpkg/packages/
 vcpkg/downloads/
 vcpkg/buildtrees/
 
-
 !vcpkg/bootstrap-vcpkg.bat
 !vcpkg/bootstrap-vcpkg.sh

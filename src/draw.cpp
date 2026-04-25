@@ -21,7 +21,11 @@
 #include "visualization6.h"
 #include "performVisualization6.h"
 
-Block* Log = nullptr;
+std::string imLogText = "";
+ImVec4 imLogBgColor;
+ImVec4 imLogTextColor;
+bool showImLog = false;
+// Block* Log = nullptr;
 float delayLog = 0;
 OperationType o = INITIALIZE;
 Block* newNode = nullptr;
@@ -30,13 +34,12 @@ int choosePrevNextButton = 0;
 bool firstTime = true;
 
 void setLog(std::string text, sf::Color color, sf::Color textColor) {
-    Log = new Block(RECTANGLE, 500.f, 40.f, text);
-    Log -> setFillColor(color);
-    Log -> setFillColorText(textColor);
-    Log -> currentPosition = {-300.f, WINDOW_HEIGHT - 500.f};
-    Log -> targetPosition = {300.f, WINDOW_HEIGHT - 500.f};
-    Log -> setPosition(Log->currentPosition);
-    delayLog = 0;
+    imLogBgColor = ImVec4(color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+    imLogTextColor = ImVec4(textColor.r / 255.f, textColor.g / 255.f, textColor.b / 255.f, textColor.a / 255.f);
+    imLogText = text;
+    
+    delayLog = 0.0f;
+    showImLog = true;
 }
 
 bool checkMove(Block *Node){
@@ -47,26 +50,90 @@ bool checkMove(Block *Node){
 }
 
 void drawLog(sf::RenderWindow& window) {
-    if(Log){
-        if(checkMove(Log)){
-            Log->move(8.0f, false);
-            delayLog = 0;
-        }
-        else{
-            delayLog += dealtaTime.asSeconds();
-            if(delayLog >= 2.0f){
-                delete Log;
-                Log = nullptr;
-                delayLog = 0;
-                return;
-            }
-        }
-        Log->draw(window);
+    if (!showImLog) return;
+
+    delayLog += dealtaTime.asSeconds();
+
+    float targetX = 50.0f;         
+    float hiddenX = -800.0f;       
+    float currentX = hiddenX;
+
+    if (delayLog < 0.3f) {
+        float t = delayLog / 0.3f; 
+        currentX = hiddenX + (targetX - hiddenX) * (t * (2.0f - t)); 
+    } 
+    else if (delayLog >= 0.3f && delayLog <= 2.5f) {
+        currentX = targetX;
     }
+    else if (delayLog > 2.5f && delayLog <= 3.0f) {
+        float t = (delayLog - 2.5f) / 0.5f; 
+        currentX = targetX + (hiddenX - targetX) * (t * t); 
+    }
+    else {
+        showImLog = false;
+        return;
+    }
+
+    ImVec2 viewportSize = ImGui::GetMainViewport()->Size;
+    float currentY = viewportSize.y - 450.0f; 
+
+    ImGui::SetNextWindowPos(ImVec2(currentX, currentY), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(500.0f, 40.0f), ImGuiCond_Always);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.0f); 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f); 
+    
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, imLogBgColor);
+    ImGui::PushStyleColor(ImGuiCol_Border, imLogTextColor); 
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | 
+                             ImGuiWindowFlags_NoSavedSettings | 
+                             ImGuiWindowFlags_NoFocusOnAppearing | 
+                             ImGuiWindowFlags_NoNav | 
+                             ImGuiWindowFlags_NoMove;
+
+    ImGui::Begin("LogOverlayWindow", nullptr, flags);
+    
+    ImGui::PushStyleColor(ImGuiCol_Text, imLogTextColor);
+    ImVec2 textSize = ImGui::CalcTextSize(imLogText.c_str());
+    float posX = (500.0f - textSize.x) * 0.5f;
+    float posY = (40.0f - textSize.y) * 0.5f;
+    
+    if (posX > 0) ImGui::SetCursorPosX(posX);
+    if (posY > 0) ImGui::SetCursorPosY(posY);
+
+    ImGui::TextUnformatted(imLogText.c_str());
+    
+    ImGui::PopStyleColor();
+    ImGui::End();
+
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(3);
 }
 
-void drawMainMenu(sf::RenderWindow& window, std::vector<Text>& texts, std::vector<Block>& buttons, std::vector<Image>& images, std::vector<Card>& cards){
-   
+void drawMainMenu(sf::RenderWindow& window, std::vector<Text>& texts, std::vector<Block>& buttons, std::vector<Image>& images, std::vector<Card>& cards, std::vector<sf::Texture>& textures, sf::Color& sfmlBgColor) {
+    sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | 
+                                    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBackground;
+
+    if (ImGui::Begin("##OverlayMenu", nullptr, window_flags)) { 
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1, 1, 1, 0.1f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1, 1, 1, 0.2f));
+
+        int texIdx = isDarkMode ? 0 : 1;
+        const char* label = isDarkMode ? "dark_mode" : "light_mode";
+
+        if (ImGui::ImageButton(label, textures[texIdx], sf::Vector2f(67, 67))) {
+            isDarkMode = !isDarkMode;
+            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+        }
+
+        ImGui::PopStyleColor(3);
+    }
+    ImGui::End(); 
     
     for(auto &button: buttons){
         button.draw(window);
@@ -78,15 +145,81 @@ void drawMainMenu(sf::RenderWindow& window, std::vector<Text>& texts, std::vecto
 
 
     texts[0].setPosition(WINDOW_WIDTH / 2.f, 100.f);
+    texts[0].setFillColor(isDarkMode ? sf::Color(0, 210, 255) : sf::Color(0, 102, 204));
+    texts[1].setPosition(WINDOW_WIDTH / 2.f, 200.f);
+    texts[1].setFillColor(isDarkMode ? sf::Color(100, 150, 200) : sf::Color(100, 130, 160));
     for(auto &text: texts){    
         text.draw(window);
     }
 
 
     for(auto &card: cards){
+        card.updateTheme(isDarkMode);
         card.draw(window);
     }
     
+}
+
+void drawFloatingHelpMarker(float x, float y) {
+    ImGui::SetNextWindowPos(ImVec2(x, y));
+    ImGui::SetNextWindowBgAlpha(0.0f); 
+    
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | 
+                             ImGuiWindowFlags_AlwaysAutoResize | 
+                             ImGuiWindowFlags_NoSavedSettings | 
+                             ImGuiWindowFlags_NoFocusOnAppearing | 
+                             ImGuiWindowFlags_NoNav | 
+                             ImGuiWindowFlags_NoMove;
+                             
+    ImGui::Begin("FloatingHelpMarker", nullptr, flags);
+
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.75f, 1.0f));       
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.35f, 0.55f, 0.85f, 1.0f)); 
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.15f, 0.35f, 0.65f, 1.0f));  
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));  
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f); 
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 12.0f);  
+
+    ImGui::Button(" (?) Help ");
+
+    ImGui::PopStyleVar(2);
+    ImGui::PopStyleColor(4);
+
+    if (ImGui::IsItemHovered()) {
+        ImVec2 buttonPos = ImGui::GetItemRectMin(); 
+        ImGui::SetNextWindowPos(ImVec2(buttonPos.x, buttonPos.y - 2.0f), ImGuiCond_Always, ImVec2(0.0f, 1.0f));
+
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.05f, 0.05f, 0.07f, 0.85f));
+        ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.4f, 0.4f, 0.4f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.95f, 0.95f, 0.9f));
+        ImGui::BeginTooltip();
+        
+        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "CONSTRAINTS");
+        ImGui::Separator();
+        ImGui::BulletText("Number of elements <= 999.");
+        ImGui::BulletText("Absolute value of nodes <= 999.");
+        ImGui::BulletText("Positions are always non-negative.");
+        ImGui::BulletText("Numeric input fields only accept integers\n(no decimals or characters allowed).");
+        ImGui::BulletText("String input fields can only contain lowercase, \nuppercase, numbers, and special characters (no spaces), \nand the string length must not exceed 50.");
+        
+        ImGui::Spacing(); ImGui::Spacing();
+
+        ImGui::TextColored(ImVec4(0.2f, 0.8f, 1.0f, 1.0f), "FEATURES");
+        ImGui::Separator();
+        ImGui::BulletText("Hold right-click to pan the screen.");
+        ImGui::BulletText("Scroll the mouse wheel to zoom in/out.");
+        ImGui::BulletText("For Dijkstra and Kruskal algorithms,\nleft-click and drag to move nodes.");
+
+        ImGui::EndTooltip();
+        
+        ImGui::PopStyleColor(3); 
+    }
+    
+    ImGui::End();
+    ImGui::PopStyleVar(); 
 }
 
 void drawModeButton(sf::Vector2u windowSize, float panelHeight, bool checkFinished, float &dt) {
@@ -275,7 +408,7 @@ void drawProgress(sf::Vector2u windowSize, float panelHeight, bool checkFinished
 
 void drawGlobalModeToggle(sf::Vector2u windowSize, float panelHeight, bool checkFinished, float &dt, int currentStepIdx = 2, int totalSteps = 3) {
     drawModeButton(windowSize, panelHeight, checkFinished, dt);    
-    drawSpeedController(windowSize, panelHeight, checkFinished, dt, 250.f);
+    drawSpeedController(windowSize, panelHeight, checkFinished, dt, 250.f, 0.1f, 15.f);
     drawProgress(windowSize, panelHeight, checkFinished, dt, currentStepIdx, totalSteps, 350.0f);
 }
 
@@ -324,7 +457,6 @@ void drawVisualization1(sf::RenderWindow& window, std::vector<sf::Texture>& text
     drawGlobalModeToggle(windowSize, panelHeight, checkFinishedV1(), dtV1, currentStepIdxV1, scriptV1.size());
     ImGui::SetNextWindowPos(ImVec2(0, windowSize.y - panelHeight));
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
-    drawLog(window);
     ImGui::Begin("ControlPanel", nullptr, 
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
@@ -365,6 +497,9 @@ void drawVisualization1(sf::RenderWindow& window, std::vector<sf::Texture>& text
 
         ImGui::PopStyleColor();
     ImGui::End();
+    drawLog(window);
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    drawFloatingHelpMarker(windowPos.x - 36.f, windowPos.y + windowSize.y - 440.f);
 }
 
 
@@ -418,8 +553,6 @@ void drawVisualization2(sf::RenderWindow& window, std::vector<sf::Texture>& text
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
     
 
-    drawLog(window);
-
 
     ImGui::Begin("ControlPanel", nullptr, 
         ImGuiWindowFlags_NoMove | 
@@ -461,6 +594,9 @@ void drawVisualization2(sf::RenderWindow& window, std::vector<sf::Texture>& text
 
         ImGui::PopStyleColor();
     ImGui::End();
+    drawLog(window);
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    drawFloatingHelpMarker(windowPos.x - 36.f, windowPos.y + windowSize.y - 440.f);
 
 
 }
@@ -515,8 +651,6 @@ void drawVisualization3(sf::RenderWindow& window, std::vector<sf::Texture>& text
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
 
 
-    drawLog(window);
-
     ImGui::Begin("ControlPanel", nullptr, 
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
@@ -556,6 +690,10 @@ void drawVisualization3(sf::RenderWindow& window, std::vector<sf::Texture>& text
 
         ImGui::PopStyleColor();
     ImGui::End();
+    drawLog(window);
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    drawFloatingHelpMarker(windowPos.x - 36.f, windowPos.y + windowSize.y - 440.f);
+
 }
 
 void drawVisualization4(sf::RenderWindow& window, std::vector<sf::Texture>& textures, sf::Color &sfmlBgColor){
@@ -606,7 +744,6 @@ void drawVisualization4(sf::RenderWindow& window, std::vector<sf::Texture>& text
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
 
 
-    drawLog(window);
 
     ImGui::Begin("ControlPanel", nullptr, 
         ImGuiWindowFlags_NoMove | 
@@ -620,7 +757,6 @@ void drawVisualization4(sf::RenderWindow& window, std::vector<sf::Texture>& text
 
         // Cot 1
         bool temp = (isStepByStep || checkFinishedV4());
-        std::cout << "check: " << temp << "\n";
         ImGui::BeginChild("Operations", ImVec2(175, 0), true);
             if (ImGui::Selectable("Initialize", o == INITIALIZE)) { if(temp) o = INITIALIZE; }
             if (ImGui::Selectable("Insert(v)", o == ADD))    { if(temp) o = ADD;   }
@@ -647,6 +783,10 @@ void drawVisualization4(sf::RenderWindow& window, std::vector<sf::Texture>& text
 
         ImGui::PopStyleColor();
     ImGui::End();
+    drawLog(window);
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    drawFloatingHelpMarker(windowPos.x - 36.f, windowPos.y + windowSize.y - 440.f);
+
 }
 
 
@@ -668,10 +808,10 @@ void drawVisualization5(sf::RenderWindow& window, std::vector<sf::Texture>& text
             ImGui::End();
             return;
         }
-        ImGui::SameLine(0, 20);
-        if (ImGui::ImageButton("dark_mode", textures[1], sf::Vector2f(67, 67))) {
+        ImGui::SameLine(0, 20); 
+        if (isDarkMode && ImGui::ImageButton("dark_mode", textures[1], sf::Vector2f(67, 67))) {
             isDarkMode = !isDarkMode;
-            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());        
             ImGui::PopStyleColor(3);
             ImGui::End();
             return;
@@ -696,7 +836,6 @@ void drawVisualization5(sf::RenderWindow& window, std::vector<sf::Texture>& text
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
 
 
-    drawLog(window);
     graphPhysics.drawBounds(window);
     ImGui::SetNextWindowPos(ImVec2(0, window.getSize().y - panelHeight));
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
@@ -725,6 +864,10 @@ void drawVisualization5(sf::RenderWindow& window, std::vector<sf::Texture>& text
             ImGui::EndGroup();
         ImGui::PopStyleColor();
     ImGui::End();
+    drawLog(window);
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    drawFloatingHelpMarker(windowPos.x - 36.f, windowPos.y + windowSize.y - 440.f);
+
 }
 
 
@@ -746,10 +889,10 @@ void drawVisualization6(sf::RenderWindow& window, std::vector<sf::Texture>& text
             ImGui::End();
             return;
         }
-        ImGui::SameLine(0, 20);
-        if (ImGui::ImageButton("dark_mode", textures[1], sf::Vector2f(67, 67))) {
+        ImGui::SameLine(0, 20); 
+        if (isDarkMode && ImGui::ImageButton("dark_mode", textures[1], sf::Vector2f(67, 67))) {
             isDarkMode = !isDarkMode;
-            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());
+            sfmlBgColor = applyTheme(isDarkMode, ImGui::GetStyle());        
             ImGui::PopStyleColor(3);
             ImGui::End();
             return;
@@ -774,7 +917,6 @@ void drawVisualization6(sf::RenderWindow& window, std::vector<sf::Texture>& text
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
 
 
-    drawLog(window);
     graphPhysics.drawBounds(window);
     ImGui::SetNextWindowPos(ImVec2(0, window.getSize().y - panelHeight));
     ImGui::SetNextWindowSize(ImVec2(currentControlWidth, panelHeight));
@@ -803,4 +945,8 @@ void drawVisualization6(sf::RenderWindow& window, std::vector<sf::Texture>& text
             ImGui::EndGroup();
         ImGui::PopStyleColor();
     ImGui::End();
+    drawLog(window);
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    drawFloatingHelpMarker(windowPos.x - 36.f, windowPos.y + windowSize.y - 440.f);
+
 }

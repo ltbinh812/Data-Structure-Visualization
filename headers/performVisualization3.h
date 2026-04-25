@@ -11,10 +11,10 @@
 enum class StepTypeV3 { INITIALIZE, NEW_NODE, INSERT, DELETE, TRAVERSE, UPDATE, SEARCH, FINISH, ROTATE_LEFT_LEFT, ROTATE_RIGHT_RIGHT, HIGHLIGHT_1};
 
 struct AnimationStepV3 {
-    std::vector<int> activeLines;         // Dòng code highlight tương ứng
-    Block* focusNode;     // Node đang được xét tới 
-    int focusNodeVal;     // Giá trị node đang được xét tới
-    std::string log;      // Lời nhắn hiện trên UI
+    std::vector<int> activeLines;
+    Block* focusNode;
+    int focusNodeVal;
+    std::string log;
     StepTypeV3 type;
     Block* focusAnotherNode;
     Block* deletedNode;

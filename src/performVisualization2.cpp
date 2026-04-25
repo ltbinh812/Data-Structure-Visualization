@@ -27,21 +27,14 @@ Block* cloneVisualization2::cloneNodeV2(Block* originalNode, std::map<Block*, Bl
     Block* clonedNode = new Block(*originalNode);
     mapping[clonedNode] = originalNode;
     visited[originalNode] = clonedNode;
-    std::cout << "clone node: " << clonedNode -> getLabel() << "\n";
     return clonedNode;
 }
 cloneVisualization2::cloneVisualization2(Block* newNode, const AnimationStepV2& stepV2) {    
     std::map<Block*, Block*> visited;
-    std::cout << "-------------------------\n";
     this->newNode = cloneNodeV2(newNode, visited);
     for(auto const& child : heapList) {
         this->cloneHeapList.push_back(cloneNodeV2(child, visited));
     }
-
-
-
-
-    std::cout << "*********************************\n";
 }
 
 void cloneVisualization2::pull(std::vector<Block*>& dummySet, 
@@ -59,11 +52,8 @@ void cloneVisualization2::pull(std::vector<Block*>& dummySet,
 
     // clone -> dummy
     // live -> dummy
-    std::cout << "$$$$$$$$$$$$pull:\n";
     for (auto const& [cloneNode, liveNode] : this->mapping) {
         Block* dummyNode = new Block(*cloneNode);
-        std::cout << dummyNode << ".\n";
-        std::cout << "dummy node: " << dummyNode -> getLabel() << "\n";
         dummySet.push_back(dummyNode);
         cloneToDummy[cloneNode] = dummyNode;         
         if (liveNode != nullptr) {
@@ -74,9 +64,7 @@ void cloneVisualization2::pull(std::vector<Block*>& dummySet,
     for(auto const& node : this->cloneHeapList) {
         cloneHeapListV2.push_back(cloneToDummy[node]);
     }
-    std::cout << "cloneHeapListV2 size: " << cloneHeapListV2.size() << "\n";
     this -> outDummyNewNode = (this->newNode != nullptr) ? cloneToDummy[this->newNode] : nullptr;
-    std::cout << "outDummyNewNode: " << (this -> outDummyNewNode ? this -> outDummyNewNode -> getLabel() : "null") << "\n";
 }
 
 cloneVisualization2::~cloneVisualization2() {
@@ -99,39 +87,6 @@ void runV2(sf::RenderWindow& window){
         list[scriptV2[currentStepIdxV2 - 1].setWhiteNodeIdx] -> setFillColor(sf::Color::White);
     }
 
-
-    if(step.type == StepTypeV2::INITIALIZE){
-        std::cout << "initialize\n";
-    }
-    if(step.type == StepTypeV2::TRAVERSE){
-        std::cout << "traverse\n";
-    }
-    if(step.type == StepTypeV2::COMPARE){
-        std::cout << "compare\n";
-    }
-    if(step.type == StepTypeV2::SWAP_DOWN){
-        std::cout << "swap down\n";
-    }
-    if(step.type == StepTypeV2::UPDATE){
-        std::cout << "update\n";
-    }
-    if(step.type == StepTypeV2::FINISH){
-        std::cout << "finish\n";
-    }
-    if(step.type == StepTypeV2::NEW_NODE){
-        std::cout << "new node\n";
-    }
-    if(step.type == StepTypeV2::DELETE_1){
-        std::cout << "delete 1\n";
-    }
-    if(step.type == StepTypeV2::DELETE_2){
-        std::cout << "delete 2\n";
-    }
-    if(step.type == StepTypeV2::MOVE){
-        std::cout << "move\n";
-    }
-
-    std::cout << scriptV2.size() << "\n";
 
     if(step.type == StepTypeV2::INITIALIZE){
         std::vector<Block*> &list = (!isCalculatingHistoryV2 ? cloneHeapListV2 : heapList);
@@ -387,13 +342,11 @@ void performVisualization2(sf::RenderWindow& window){
         historyV2[0]->pull(dummySetV2, liveToDummyMapV2);
         firstTime = true;
     }
-    std::cout << "currentStepIdxV2: " << currentStepIdxV2 << " " << scriptV2.size() << std::endl;
+
     if(isStepByStep) {
         if(choosePrevNextButton == -1 && currentStepIdxV2 > 0){
             currentStepIdxV2--;
-            std::cout << "before pull: \n";
             historyV2[currentStepIdxV2]->pull(dummySetV2, liveToDummyMapV2);
-            std::cout << "after pull: \n";
             choosePrevNextButton = 0;
             firstTime = true;
         }
@@ -408,9 +361,6 @@ void performVisualization2(sf::RenderWindow& window){
             choosePrevNextButton = 0;
         }
         if(choosePrevNextButton == 0){
-            // std::cout << currentStepIdxV2;
-            // std::cout << ": outDummyRoot: " << ((historyV2[currentStepIdxV2]->outDummyRoot) ? historyV2[currentStepIdxV2]->outDummyRoot->getLabel() : "null");
-            // std::cout << " outDummyNewNode: " << ((historyV2[currentStepIdxV2]->outDummyNewNode) ? historyV2[currentStepIdxV2]->outDummyNewNode->getLabel() : "null") << std::endl; 
             if(currentStepIdxV2 > 0)    drawCodeHighlightPanel(2, currentStepIdxV2 - 1, isStepByStep, checkFinishedV2(), scriptV2[currentStepIdxV2 - 1].activeLines);
             else                        drawCodeHighlightPanel(2, currentStepIdxV2 - 1, isStepByStep, checkFinishedV2(), {});
             std::vector<Block*> list;

@@ -6,6 +6,8 @@
 #include "entity.h"
 #include "draw.h"
 #include "theme.h"
+#include "importFile.h"
+
 
 bool isWaitingV4 = false;
 float delayTimerV4 = 0;
@@ -45,12 +47,12 @@ void initStatus4(){
         delete clone;
     dummySetV4.clear();
     liveToDummyMapV4.clear();
-    historyV4.clear();
+    for(auto &clone:historyV4) delete clone; historyV4.clear();
     historyV4.push_back(new cloneVisualization4(rootV4, newNode, scriptV4[0]));
 
     // draw.cpp
     o = INITIALIZE;
-    Log = nullptr;
+    showImLog = false;
     delayLog = 0;
     choosePrevNextButton = 0;
     isStepByStep = false;
@@ -78,7 +80,6 @@ float calculateTrieGapWidth(Block* node) {
 void calculateTriePos(Block* node, float x, float y) {
     if (node == nullptr) return;
     node->targetPosition = sf::Vector2f(x, y);
-    std::cout << node -> getLabel() << " " << x << " " << y << std::endl;
     float vGap = 150.f;
     float currentX = x - (node->gapWidth / 2.f);
     for (auto& pair : node->children) {
@@ -98,6 +99,7 @@ void setColorTrie(Block* node, sf::Color color = sf::Color::White) {
     }
 }
 
+
 void initVisualization4(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Initializing the Trie tree!");
     ImGui::Spacing();
@@ -106,16 +108,31 @@ void initVisualization4(sf::RenderWindow& window) {
     static char inputBuffer[1024] = "";
     bool temp = false;
     ImGui::SetNextItemWidth(400.0f);
+    ImVec2 inputSize = ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 4);    
+    ImVec2 inputPos = ImGui::GetCursorScreenPos(); 
     ImGui::InputTextMultiline("##init_input", inputBuffer, IM_ARRAYSIZE(inputBuffer), ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 4), ImGuiInputTextFlags_AllowTabInput);
+    if (inputBuffer[0] == '\0' && !ImGui::IsItemActive()) {
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        ImVec2 textPos = ImVec2(inputPos.x + 8.0f, inputPos.y + 8.0f); 
+        float lineHeight = ImGui::GetTextLineHeight();
+        drawList->AddText(textPos, IM_COL32(150, 150, 150, 150), "Example input:");
+        textPos.y += lineHeight;         
+        drawList->AddText(textPos, IM_COL32(150, 150, 150, 150), "aabbccdd");
+        textPos.y += lineHeight;         
+        drawList->AddText(textPos, IM_COL32(150, 150, 150, 150), "aabeeffg");
+        textPos.y += lineHeight;         
+        drawList->AddText(textPos, IM_COL32(150, 150, 150, 150), "abbeeffg");
+    }
+
     ImGui::Spacing();
 
     if ((isStepByStep || checkFinishedV4()) && ImGui::Button("Random", ImVec2(100.0f, 30))) {
-        int test = rand() % 6 + 1;
+        int test = rand() % 13 + 1;
         std::string data = "";
         while(test--){
-            int n = rand() % 6 + 1;
+            int n = rand() % 11 + 1;
             for(int i = 0; i < n; i++){
-                int value = rand() % 26 + 'a';
+                int value = rand() % 5 + 'a';
                 data += char(value);
             }
             data += "\n";
@@ -124,14 +141,41 @@ void initVisualization4(sf::RenderWindow& window) {
         temp = true;
     }
     ImGui::SameLine();
+    if ((isStepByStep || checkFinishedV4()) && ImGui::Button("Load File", ImVec2(150.0f, 30))) {
+        std::string fileContent = openAndReadFile();
+        if (!fileContent.empty()) {
+            strncpy(inputBuffer, fileContent.c_str(), sizeof(inputBuffer) - 1);
+            inputBuffer[sizeof(inputBuffer) - 1] = '\0'; 
+            temp = true; 
+        }
+    }
+    ImGui::SameLine();
     if ((isStepByStep || checkFinishedV4()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
         std::string data(inputBuffer);
         if(data == "") return;
+        
         std::vector<std::string> inputStrings;
         std::stringstream ss(data);
         std::string line;
+        bool isValidInput = true;
+        
         while (std::getline(ss, line)) {
+            if (!line.empty() && line.back() == '\r') line.pop_back();
+            if (line.empty()) continue;
+
+            if (line.length() > 50) {
+                isValidInput = false; break;
+            }
             inputStrings.push_back(line);
+            
+            if (inputStrings.size() > 999) {
+                isValidInput = false; break;
+            }
+        }
+        if (!isValidInput || inputStrings.empty()) {
+            setLog("Invalid input!");
+            temp = false;
+            return;
         }
         scriptV4.clear();
         currentStepIdxV4 = 0;
@@ -139,7 +183,7 @@ void initVisualization4(sf::RenderWindow& window) {
             delete newNode;
             newNode = nullptr;
         }
-        historyV4.clear();
+        for(auto &clone:historyV4) delete clone; historyV4.clear();
         for(auto& node: garbageV4) delete node;
         garbageV4.clear();
 
@@ -194,7 +238,7 @@ void initVisualization4(sf::RenderWindow& window) {
         }
         for(auto& node: garbageV4) delete node;
         garbageV4.clear();
-        historyV4.clear();
+        for(auto &clone:historyV4) delete clone; historyV4.clear();
         isCalculatingHistoryV4 = true;
         firstTime = true;
     }
@@ -203,7 +247,7 @@ void initVisualization4(sf::RenderWindow& window) {
 void insertVisualization4(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Insert an element in the Trie tree:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the string to insert:");
     ImGui::SameLine();
@@ -211,29 +255,31 @@ void insertVisualization4(sf::RenderWindow& window) {
     ImGui::InputTextWithHint("##insert_input", "Example: 5", inputBuffer, IM_ARRAYSIZE(inputBuffer));
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV4()) && ImGui::Button("Random", ImVec2(100.0f, 30))) {
-        int n = rand() % 8;
+        int n = rand() % 8 + 1;
         std::string data = "";
         for(int i = 0; i < n; i++){
-            int value = rand() % 26 + 'a';
-            data += std::to_string(value);
+            int value = rand() % 5 + 'a';
+            data += char(value);
         }
         strcpy(inputBuffer, data.c_str());
         temp = true;
     }
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV4()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
+        temp = false;
         std::string data(inputBuffer);
-        if(data == "") return;
+        if(data == "" || data.length() > 50) {
+            setLog("Invalid input!");
+            return;
+        }
         scriptV4.clear();
         currentStepIdxV4 = 0;
         if(newNode){
             delete newNode;
             newNode = nullptr;
         }
-        historyV4.clear();
+        for(auto &clone:historyV4) delete clone; historyV4.clear();
         for(auto& node: garbageV4){
-            std::cout << node << "\n";
-            std::cout << "delete garbage: " << node -> getLabel() << "\n";
             delete node;
         }
         garbageV4.clear();
@@ -268,7 +314,7 @@ void insertVisualization4(sf::RenderWindow& window) {
 void deleteVisualization4(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Delete an element in the Trie:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the string to delete:");
     ImGui::SameLine();
@@ -276,26 +322,31 @@ void deleteVisualization4(sf::RenderWindow& window) {
     ImGui::InputTextWithHint("##delete_input", "Example: 5", inputBuffer, IM_ARRAYSIZE(inputBuffer));
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV4()) && ImGui::Button("Random", ImVec2(100.0f, 30))) {
-        int n = rand() % 8;
+        int n = rand() % 8 + 1;
         std::string data = "";
         for(int i = 0; i < n; i++){
-            int value = rand() % 26 + 'a';
-            data += std::to_string(value);
+            int value = rand() % 5 + 'a';
+            data += char(value);
         }
         strcpy(inputBuffer, data.c_str());
         temp = true;
     }
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV4()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
+        temp = false;
         std::string data(inputBuffer);
-        if(data == "") return;
+        
+        if(data == "" || data.length() > 50) {
+            setLog("Invalid input!");
+            return;
+        }
         scriptV4.clear();
         currentStepIdxV4 = 0;
         if(newNode){
             delete newNode;
             newNode = nullptr;
         }
-        historyV4.clear();
+        for(auto &clone:historyV4) delete clone; historyV4.clear();
         for(auto& node: garbageV4) delete node;
         garbageV4.clear();
         isCalculatingHistoryV4 = true;
@@ -364,7 +415,7 @@ void deleteVisualization4(sf::RenderWindow& window) {
 void searchVisualization4(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Search for an element in the Trie:");
     ImGui::Spacing();
-    static char inputBuffer[256] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
     ImGui::Text("Enter the string to search:");
     ImGui::SameLine();
@@ -372,26 +423,31 @@ void searchVisualization4(sf::RenderWindow& window) {
     ImGui::InputTextWithHint("##search_input", "Example: 5", inputBuffer, IM_ARRAYSIZE(inputBuffer));
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV4()) && ImGui::Button("Random", ImVec2(100.0f, 30))) {
-        int n = rand() % 8;
+        int n = rand() % 8 + 1;
         std::string data = "";
         for(int i = 0; i < n; i++){
-            int value = rand() % 26 + 'a';
-            data += std::to_string(value);
+            int value = rand() % 5 + 'a';
+            data += char(value);
         }
         strcpy(inputBuffer, data.c_str());
         temp = true;
     }
     ImGui::SameLine();
     if((isStepByStep || checkFinishedV4()) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
+        temp = false;
         std::string data(inputBuffer);
-        if(data == "") return;
+        
+        if(data == "" || data.length() > 50) {
+            setLog("Invalid input!");
+            return;
+        }
         scriptV4.clear();
         currentStepIdxV4 = 0;
         if(newNode){
             delete newNode;
             newNode = nullptr;
         }
-        historyV4.clear();
+        for(auto &clone:historyV4) delete clone; historyV4.clear();
         for(auto& node: garbageV4) delete node;
         garbageV4.clear();
         isCalculatingHistoryV4 = true;
@@ -428,15 +484,12 @@ bool DFScheckMoveV4(Block* node) {
 
 bool checkNextStepV4(float dt, Block* rootV4, Block* newNode) {
     isWaitingV4 = true;
-    std::cout << "bool newNode: " << (newNode != nullptr) << "\n";
-    std::cout << "bool rootV4: " << (rootV4 != nullptr) << "\n";
     if (newNode && checkMove(newNode)) isWaitingV4 = false;
     
     if(DFScheckMoveV4(rootV4)) isWaitingV4 = false;
     
     if(isWaitingV4){ 
         delayTimerV4 += dealtaTime.asSeconds() * dtV4; 
-        std::cout << "**********************************" << delayTimerV4 << "\n";
         if (delayTimerV4 >= dt) { 
             isWaitingV4 = false;
             delayTimerV4 = 0;

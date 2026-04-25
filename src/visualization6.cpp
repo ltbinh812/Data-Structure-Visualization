@@ -12,6 +12,7 @@
 #include "draw.h"
 #include "theme.h"
 #include "graphPhysics.h"
+#include "importFile.h"
 
 bool isWaitingV6 = false;
 float delayTimerV6 = 0;
@@ -39,12 +40,12 @@ void initStatus6(){
     scriptV6.push_back({{}, -1, -1, "", StepTypeV6::FINISH});
     currentStepIdxV6 = 0;
     isCalculatingHistoryV6 = false;
-    historyV6.clear();
+    for(auto &clone:historyV6) delete clone; historyV6.clear();
     historyV6.push_back(new cloneVisualization6(visitedEdgeV6, visitedNodeV6));
 
     // draw.cpp
     o = INITIALIZE;
-    Log = nullptr;
+    showImLog = false;
     delayLog = 0;
     choosePrevNextButton = 0;
     isStepByStep = false;
@@ -71,76 +72,55 @@ void unite(int i, int j) {
     if (root_i != root_j) parentV6[root_i] = root_j;
 }
 
-// Kruskal's algorithm
 void initVisualization6(sf::RenderWindow& window) {
     ImGui::TextColored(title1Color, "Initializing the graph!");
     ImGui::Spacing();
     
 
-    static char inputBuffer[1024] = "";
+    static char inputBuffer[15000] = "";
     bool temp = false;
 
     
-    // Đặt kích thước khung nhập liệu
     ImGui::SetNextItemWidth(400.0f);
-    ImVec2 inputSize = ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 4);
-    
-    // LẤY TỌA ĐỘ MÀN HÌNH CHÍNH XÁC CỦA KHUNG INPUT TRƯỚC KHI VẼ
+    ImVec2 inputSize = ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 4);    
     ImVec2 inputPos = ImGui::GetCursorScreenPos(); 
 
-    // Vẽ khung Input Multiline bình thường
     ImGui::InputTextMultiline("##init_input", inputBuffer, IM_ARRAYSIZE(inputBuffer), inputSize, ImGuiInputTextFlags_AllowTabInput);
 
-    // ==========================================
-    // TẠO HINT TEXT CHÌM (Chỉ vẽ khi buffer đang trống và không được focus)
-    // ==========================================
     if (inputBuffer[0] == '\0' && !ImGui::IsItemActive()) {
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         
-        // Canh lề (padding) cho chữ thụt vào trong khung một chút
         ImVec2 textPos = ImVec2(inputPos.x + 8.0f, inputPos.y + 8.0f); 
         float lineHeight = ImGui::GetTextLineHeight();
 
-        // Vẽ từng dòng chữ chìm bằng màu sắc tùy chỉnh (RGBA: 0-255)
-        // IM_COL32(R, G, B, Alpha) - Alpha 150 để tạo độ mờ (chìm)
         drawList->AddText(textPos, IM_COL32(150, 150, 150, 150), "- Line 1: n m (n: vertices, m: edges)");
-        textPos.y += lineHeight; // Xuống dòng
-        
+        textPos.y += lineHeight; 
         drawList->AddText(textPos, IM_COL32(150, 150, 150, 150), "- Next m lines: u v w (Edge from u to v, weight w)");
-        textPos.y += lineHeight; // Xuống dòng
-        
-        // Dòng lưu ý in màu đỏ mờ để thu hút chú ý nhẹ
+        textPos.y += lineHeight;         
         drawList->AddText(textPos, IM_COL32(230, 100, 100, 150), "*Note: Vertices are 0-indexed (0 to n-1). Undirected graph.");
     }
     
     ImGui::Spacing();
-
+    
     if ((isStepByStep || checkFinishedV6()) && ImGui::Button("Random", ImVec2(100.0f, 30))) {
-        // Sinh ngẫu nhiên số đỉnh từ 4 đến 8
         int n = rand() % 6 + 4; 
-        
-        // Sinh ngẫu nhiên số cạnh (đảm bảo không vượt quá số cạnh tối đa của đồ thị)
         int max_edges = n * (n - 1) / 2;
-        int m = rand() % (max_edges / 2 + 1) + n - 1; // Ít nhất n-1 cạnh để đồ thị có thể liên thông
+        int m = rand() % (max_edges / 2 + 1) + n - 1; 
         if (m > max_edges) m = max_edges;
 
         std::string data = std::to_string(n) + " " + std::to_string(m) + "\n";
-        
-        // Dùng std::set để chống sinh trùng lặp cạnh (Multigraph)
         std::set<std::pair<int, int>> edges;
         while (edges.size() < m) {
             int u = rand() % n;
             int v = rand() % n;
             if (u != v) {
-                // Đảm bảo u < v để set nhận diện được cạnh vô hướng
                 if (u > v) std::swap(u, v); 
                 edges.insert({u, v});
             }
         }
         
-        // Ghi các cạnh vào chuỗi data
         for (auto& edge : edges) {
-            int w = rand() % 20 + 1; // Trọng số từ 1 đến 20
+            int w = rand() % 20 + 1; 
             data += std::to_string(edge.first) + " " + std::to_string(edge.second) + " " + std::to_string(w) + "\n";
         }
 
@@ -148,80 +128,90 @@ void initVisualization6(sf::RenderWindow& window) {
         temp = true;
     }
     ImGui::SameLine();
+    if ((isStepByStep || checkFinishedV6()) && ImGui::Button("Load File", ImVec2(150.0f, 30))) {
+        std::string fileContent = openAndReadFile();
+        if (!fileContent.empty()) {
+            strncpy(inputBuffer, fileContent.c_str(), sizeof(inputBuffer) - 1);
+            inputBuffer[sizeof(inputBuffer) - 1] = '\0'; 
+            temp = true; 
+        }
+    }
+    ImGui::SameLine();
     if ((isStepByStep || checkFinishedV6()) && (temp || ImGui::Button("Confirm", ImVec2(126.0f, 30)))) {
         temp = false;
         std::string data(inputBuffer);
-        if(data == "") {
-            temp = false;
-            return;
-        }
-        std::cout << "Input data 1\n" << std::endl;
+        if(data == "") return;
+        
         std::stringstream ss(data);
         std::string line;
         
-        // 1. KIỂM TRA FORMAT n VÀ m
-        if (!std::getline(ss, line)) { temp = false; return; }
+        if (!std::getline(ss, line)) return;
+        if (!line.empty() && line.back() == '\r') line.pop_back();
+
         std::stringstream lineStream(line);
-        int n, m;
-        if (!(lineStream >> n >> m) || n <= 0 || m < 0) {
-            temp = false;
-            return; 
+        std::string tokenN, tokenM, extraNM;
+        if (!(lineStream >> tokenN >> tokenM) || (lineStream >> extraNM)) {
+            setLog("Invalid input!"); return; 
         }
 
-        // ==========================================
-        // Dùng std::map để lọc cạnh trùng và cạnh khuyên. 
-        // Key là cặp đỉnh {u, v} (quy ước u < v), Value là trọng số min.
-        // ==========================================
+        int n = 0, m = 0;
+        try {
+            size_t pN, pM;
+            n = std::stoi(tokenN, &pN);
+            m = std::stoi(tokenM, &pM);
+            if (pN != tokenN.length() || pM != tokenM.length() || n <= 0 || n > 20 || m < 0) {
+                setLog("Invalid input!"); return;
+            }
+        } catch (...) { setLog("Invalid input!"); return; }
+
         std::map<std::pair<int, int>, int> edgeMap;
         int edgeCount = 0;
         bool isValid = true;
 
         while (std::getline(ss, line)) {
+            if (!line.empty() && line.back() == '\r') line.pop_back();
             if (line.empty()) continue; 
             
             std::stringstream es(line);
-            int u, v, w;
+            std::string tokenU, tokenV, tokenW, extraEdge;
+            if (!(es >> tokenU >> tokenV >> tokenW) || (es >> extraEdge)) { 
+                isValid = false; break; 
+            }
             
-            if (!(es >> u >> v >> w)) { isValid = false; break; }
-            if (u < 0 || u >= n || v < 0 || v >= n || w < 0) { isValid = false; break; }
-            
+            int u = 0, v = 0, w = 0;
+            try {
+                size_t pU, pV, pW;
+                u = std::stoi(tokenU, &pU);
+                v = std::stoi(tokenV, &pV);
+                w = std::stoi(tokenW, &pW);
+                if (pU != tokenU.length() || pV != tokenV.length() || pW != tokenW.length() || 
+                    u < 0 || u >= n || v < 0 || v >= n || w < 0 || w > 999) {
+                    isValid = false; break;
+                }
+            } catch (...) { isValid = false; break; }
+
             edgeCount++; 
+            if (u == v) continue; 
 
-            // LOẠI 1: Bỏ qua CẠNH KHUYÊN (Self-loop)
-            if (u == v) continue;
-
-            // LOẠI 2: Xử lý CẠNH TRÙNG (Chỉ lấy trọng số nhỏ nhất)
-            // Chuẩn hóa để đỉnh nhỏ hơn luôn đứng trước (vì đồ thị vô hướng)
             int minNode = std::min(u, v);
             int maxNode = std::max(u, v);
             std::pair<int, int> currentEdge = {minNode, maxNode};
 
-            // Nếu cạnh chưa tồn tại trong map -> Thêm mới
             if (edgeMap.find(currentEdge) == edgeMap.end()) {
                 edgeMap[currentEdge] = w;
-            } 
-            // Nếu đã tồn tại -> Cập nhật lại bằng trọng số nhỏ hơn
-            else {
+            } else {
                 edgeMap[currentEdge] = std::min(edgeMap[currentEdge], w);
             }
         }
-        std::cout << "Input data 1.6\n" << std::endl;
-        std::cout << isValid << " " << edgeCount << " " << m << std::endl;
+
         if (!isValid || edgeCount < m) {
-            temp = false;
-            return;
+            setLog("Invalid input!"); return;
         }
-        std::cout << "Input data 2\n" << std::endl;
 
-
-        // ==========================================
-        // CHUYỂN TỪ MAP SANG DANH SÁCH KỀ CHÍNH THỨC (adjListV6)
-        // ==========================================
         std::vector<std::pair<int,std::pair<int,int>>> tempAdj;
         for (auto const& [edge, weight] : edgeMap) {
             int u = edge.first;
             int v = edge.second;
-            
             tempAdj.push_back({weight, {u, v}});
         }
 
@@ -234,7 +224,7 @@ void initVisualization6(sf::RenderWindow& window) {
             newNode = nullptr;
         }
         
-        historyV6.clear();
+        for(auto &clone:historyV6) delete clone; historyV6.clear();
         isCalculatingHistoryV6 = true;
         firstTime = true;
         temp = false; 
@@ -245,7 +235,6 @@ void initVisualization6(sf::RenderWindow& window) {
         visitedNodeV6.assign(n, false);
         graphPhysics.clearNodes();
 
-        std::cout << "Input data 3\n" << std::endl;
 
 
         for(int i = 0; i < n; i++){
@@ -260,8 +249,7 @@ void initVisualization6(sf::RenderWindow& window) {
     ImGui::Spacing();    
     ImGui::Text("Add an edge:");
     ImGui::SameLine();
-    // add random
-    static char inputEdgeBuffer[256] = "";
+    static char inputEdgeBuffer[15000] = "";
     ImGui::SetNextItemWidth(200.0f);
     ImGui::InputTextWithHint("##random_edge", "Example: 6", inputEdgeBuffer, IM_ARRAYSIZE(inputEdgeBuffer));
     ImGui::SameLine();
@@ -275,20 +263,29 @@ void initVisualization6(sf::RenderWindow& window) {
     }
     ImGui::SameLine();
     if ((isStepByStep || checkFinishedV6()) && (temp || ImGui::Button("Add", ImVec2(100.0f, 30)))){
-        // u v w
+        temp = false;
         std::string data(inputEdgeBuffer);
         std::stringstream ss(data);
-        int u, v, w, n = visitedNodeV6.size();
-        if (!(ss >> u >> v >> w) || u < 0 || u >= n || v < 0 || v >= n || w < 0 || u == v) return;
+        std::string tokenU, tokenV, tokenW, extra;
         
-        scriptV6.clear();
-        scriptV6.push_back({{}, -1, -1, "", StepTypeV6::FINISH});
-        currentStepIdxV6 = 0;        
-        if(newNode){
-            delete newNode;
-            newNode = nullptr;
-        }        
-        historyV6.clear();
+        if (!(ss >> tokenU >> tokenV >> tokenW) || (ss >> extra)) {
+            setLog("Invalid input!"); return;
+        }
+
+        int u = 0, v = 0, w = 0, n = visitedNodeV6.size();
+        try {
+            size_t pU, pV, pW;
+            u = std::stoi(tokenU, &pU);
+            v = std::stoi(tokenV, &pV);
+            w = std::stoi(tokenW, &pW);
+            
+            if (pU != tokenU.length() || pV != tokenV.length() || pW != tokenW.length() || 
+                u < 0 || u >= n || v < 0 || v >= n || w < 0 || w > 999 || u == v) {
+                setLog("Invalid input!"); return;
+            }
+        } catch (...) { setLog("Invalid input!"); return; }
+
+        for(auto &clone:historyV6) delete clone; historyV6.clear();
         isCalculatingHistoryV6 = true;
         firstTime = true;
         int found_idx = -1;
@@ -311,7 +308,7 @@ void initVisualization6(sf::RenderWindow& window) {
             delete newNode;
             newNode = nullptr;
         }        
-        historyV6.clear();
+        for(auto &clone:historyV6) delete clone; historyV6.clear();
         isCalculatingHistoryV6 = true;
         firstTime = true;
         adjListV6.clear();
@@ -331,7 +328,7 @@ void kruskalVisualization6(sf::RenderWindow& window) {
             delete newNode;
             newNode = nullptr;
         }
-        historyV6.clear();
+        for(auto &clone:historyV6) delete clone; historyV6.clear();
         isCalculatingHistoryV6 = true;
         firstTime = true;
 
@@ -374,7 +371,6 @@ bool checkNextStepV6(float dt) {
     
     if(isWaitingV6){ 
         delayTimerV6 += dealtaTime.asSeconds() * dtV6; 
-        std::cout << "**********************************" << delayTimerV6 << "\n";
         if (delayTimerV6 >= dt) { 
             isWaitingV6 = false;
             delayTimerV6 = 0;
