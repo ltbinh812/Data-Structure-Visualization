@@ -4,7 +4,7 @@ if(POLICY CMP0169)
     cmake_policy(SET CMP0169 OLD)
 endif()
 
-project(data-structure-visualization)
+project(data-structure-visualizer)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -16,7 +16,7 @@ find_package(ImGui-SFML REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/headers)
 
-add_executable(data-structure-visualization
+add_executable(data-structure-visualizer
     src/main.cpp 
     src/entity.cpp
     src/draw.cpp
@@ -40,9 +40,9 @@ add_executable(data-structure-visualization
 
 )
 
-target_compile_definitions(data-structure-visualization PRIVATE ROOT_DIR="${CMAKE_SOURCE_DIR}")
+# target_compile_definitions(data-structure-visualizer PRIVATE ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
-target_link_libraries(data-structure-visualization PRIVATE 
+target_link_libraries(data-structure-visualizer PRIVATE 
     SFML::Graphics 
     SFML::Window 
     SFML::System 
