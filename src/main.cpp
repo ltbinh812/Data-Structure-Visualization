@@ -61,33 +61,33 @@ int main() {
     sf::Texture homeTexture;
     sf::Texture darkModeTexture;
     sf::Texture lightModeTexture;
-    if (!homeTexture.loadFromFile("assets/house.png")) {
+    if (!homeTexture.loadFromFile("..//assets/house.png")) {
         cerr << "Failed to load homeTexture" << endl;
         return -1;
     }
-    if (!darkModeTexture.loadFromFile("assets/moon.png")) {
+    if (!darkModeTexture.loadFromFile("..//assets/moon.png")) {
         cerr << "Failed to load darkModeTexture" << endl;
         return -1;
     }
-    if (!lightModeTexture.loadFromFile("assets/sun.png")) {
+    if (!lightModeTexture.loadFromFile("..//assets/sun.png")) {
         cerr << "Failed to load lightModeTexture" << endl;
         return -1;
     }
 
-    if (!font1.openFromFile("assets/PTC55F.ttf")) {
+    if (!font1.openFromFile("..//assets/PTC55F.ttf")) {
         cerr << "Failed to load font1" << endl;
         return -1;
     }
-    if (!font2.openFromFile("assets/PTC75F.ttf")) {
+    if (!font2.openFromFile("..//assets/PTC75F.ttf")) {
         cerr << "Failed to load font2" << endl;
         return -1;
     }
-    if (!font3.openFromFile("assets/PTC55F.ttf")) {
+    if (!font3.openFromFile("..//assets/PTC55F.ttf")) {
         cerr << "Failed to load font3" << endl;
         return -1;
     }
     ImGuiIO& io = ImGui::GetIO();
-    codeFont = io.Fonts->AddFontFromFileTTF("assets/JetBrainsMono-Regular.ttf", 15.0f);
+    codeFont = io.Fonts->AddFontFromFileTTF("..//assets/JetBrainsMono-Regular.ttf", 15.0f);
     if (!ImGui::SFML::UpdateFontTexture()) {
         std::cout << "Failed to update font texture\n";
     }
@@ -101,37 +101,37 @@ int main() {
     style6 = Style(font2, 30, sf::Color::Red); //Idx text
     style7 = Style(font2, 20, sf::Color(255, 0, 255)); //edge text
     sf::Texture LinkedListTexture;
-    if (!LinkedListTexture.loadFromFile("assets/LinkedListImage.jpg")) {
+    if (!LinkedListTexture.loadFromFile(".//..//assets/LinkedListImage.jpg")) {
         cerr << "Failed to load LinkedListTexture" << endl;
         return -1;
     }
     sf::Texture Test1;
-    if (!Test1.loadFromFile("assets/LinkedListImage.jpg")) {
+    if (!Test1.loadFromFile("..//assets/LinkedListImage.jpg")) {
         cerr << "Failed to load Test1" << endl;
         return -1;
     }
     sf::Texture Test2;
-    if (!Test2.loadFromFile("assets/MinHeapAndMaxHeap1.png")) {
+    if (!Test2.loadFromFile("..//assets/MinHeapAndMaxHeap1.png")) {
         cerr << "Failed to load Test2" << endl;
         return -1;
     }
     sf::Texture Test3;
-    if (!Test3.loadFromFile("assets/AVL-Tree-in-Javascript.png")) {
+    if (!Test3.loadFromFile("..//assets/AVL-Tree-in-Javascript.png")) {
         cerr << "Failed to load Test3" << endl;
         return -1;
     }
     sf::Texture Test4;
-    if (!Test4.loadFromFile("assets/trie.png")) {
+    if (!Test4.loadFromFile("..//assets/trie.png")) {
         cerr << "Failed to load Test4" << endl;
         return -1;
     }
     sf::Texture Test5;
-    if (!Test5.loadFromFile("assets/dijkstra.jpg")) {
+    if (!Test5.loadFromFile("..//assets/dijkstra.jpg")) {
         cerr << "Failed to load Test5" << endl;
         return -1;
     }
     sf::Texture Test6;
-    if (!Test6.loadFromFile("assets/kruskal.jpg")) {
+    if (!Test6.loadFromFile("..//assets/kruskal.jpg")) {
         cerr << "Failed to load Test6" << endl;
         return -1;
     }

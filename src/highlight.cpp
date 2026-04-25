@@ -11,12 +11,12 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 const std::string filepath[] = {
-    "/AlgorithmSourceCode/SinglyLinkedList.cpp",
-    "/AlgorithmSourceCode/Heap.cpp",
-    "/AlgorithmSourceCode/AVLtree.cpp",
-    "/AlgorithmSourceCode/Trie.cpp",
-    "/AlgorithmSourceCode/Dijkstra.cpp",
-    "/AlgorithmSourceCode/Kruskal.cpp"
+    "..\\AlgorithmSourceCode\\SinglyLinkedList.cpp",
+    "..\\AlgorithmSourceCode\\Heap.cpp",
+    "..\\AlgorithmSourceCode\\AVLtree.cpp",
+    "..\\AlgorithmSourceCode\\Trie.cpp",
+    "..\\AlgorithmSourceCode\\Dijkstra.cpp",
+    "..\\AlgorithmSourceCode\\Kruskal.cpp"
 };
 std::vector<std::string> sourceCode;
 bool showCodePanel = true;  
@@ -123,9 +123,7 @@ void printSyntaxLine(const std::string& line, bool isDarkMode, bool isLineActive
 
 std::vector<std::string> loadSourceCode(int indexCSourceCode) {
     std::vector<std::string> code;    
-    std::string rootPath = TOSTRING(ROOT_DIR);    
-    rootPath.erase(std::remove(rootPath.begin(), rootPath.end(), '\"'), rootPath.end());
-    std::string fullPath = rootPath + filepath[indexCSourceCode];
+    std::string fullPath = filepath[indexCSourceCode];
     std::ifstream file(fullPath);
     std::string line;
     if (file.is_open()) {
