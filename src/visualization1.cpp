@@ -69,7 +69,7 @@ void initVisualization1(sf::RenderWindow& window) {
     ImGui::SameLine(90.0f);
     if ((checkFinishedV1() || isStepByStep) && ImGui::Button("Random", ImVec2(100.0f, 30)))
     {
-        int n = rand() % 8;
+        int n = rand() % 8 + 1;
         std::string data = "";
         for(int i = 0; i < n; i++){
             int value = rand() % 100;
@@ -531,7 +531,7 @@ void updateVisualization1(sf::RenderWindow& window) {
 
     static char posBuffer[15000], valueBuffer[15000] = "";
     bool temp = false;
-    ImGui::Text("Enter the position to update:");
+    ImGui::Text("Enter a value to be updated:");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(200.0f);
     ImGui::InputTextWithHint("##update_input", "Example: 5", posBuffer, IM_ARRAYSIZE(posBuffer));
@@ -547,7 +547,7 @@ void updateVisualization1(sf::RenderWindow& window) {
         historyV1.back()->pull(linkedList, newNode);
         if(linkedList.size() == 0) return;
         int n = rand() % linkedList.size();
-        std::string data = std::to_string(n);
+        std::string data = linkedList[n]->getLabel();
         strcpy(posBuffer, data.c_str());
         int value = rand() % 100;
         data = std::to_string(value);
@@ -557,25 +557,25 @@ void updateVisualization1(sf::RenderWindow& window) {
     ImGui::SameLine();
     if ((checkFinishedV1() || isStepByStep) && (temp || ImGui::Button("Confirm", ImVec2(125.0f, 30)))) {
         temp = false;
-        std::string posStr(posBuffer);
+        std::string oldStr(posBuffer);
         std::string valStr(valueBuffer);
-        std::stringstream ssPos(posStr), ssVal(valStr);
-        std::string tokenPos, extraPos, tokenVal, extraVal;
+        std::stringstream ssOld(oldStr), ssVal(valStr);
+        std::string tokenOld, extraOld, tokenVal, extraVal;
 
-        if (!(ssPos >> tokenPos) || !(ssVal >> tokenVal)) return;
-        if ((ssPos >> extraPos) || (ssVal >> extraVal)) {
+        if (!(ssOld >> tokenOld) || !(ssVal >> tokenVal)) return;
+        if ((ssOld >> extraOld) || (ssVal >> extraVal)) {
             setLog("Invalid input!");
             return;
         }
 
-        int pos = 0, value = 0;
+        int old = 0, value = 0;
         try {
-            size_t pPos, pVal;
-            pos = std::stoi(tokenPos, &pPos);
+            size_t pold, pVal;
+            old = std::stoi(tokenOld, &pold);
             value = std::stoi(tokenVal, &pVal);
             
-            if (pPos != tokenPos.length() || pVal != tokenVal.length() || 
-                pos < 0 || pos >= linkedList.size() || 
+            if (pold != tokenOld.length() || pVal != tokenVal.length() || 
+                old < -999 || old > 999 || 
                 value < -999 || value > 999) {
                 setLog("Invalid input!");
                 return;
@@ -592,15 +592,20 @@ void updateVisualization1(sf::RenderWindow& window) {
             delete newNode;
             newNode = nullptr;
         }
+        int pos = linkedList.size();
+        for(int i=0; i<linkedList.size(); i++) if(linkedList[i]->getLabel() == std::to_string(old)){pos = i; break;}
         for(int i=0; i<pos; i++){
             scriptV1.push_back({{91}, i, -1, "", StepTypeV1::TRAVERSE});
             scriptV1.push_back({{96}, i, -1, "", StepTypeV1::HIGHLIGHT_2});
         }
-        scriptV1.push_back({{91}, pos, -1, "", StepTypeV1::TRAVERSE});
-        scriptV1.push_back({{92}, pos, -1, "", StepTypeV1::HIGHLIGHT_2});
-    
-        scriptV1.push_back({{93}, pos, value, "", StepTypeV1::UPDATE});
-        scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
+        if(pos < linkedList.size()){
+            scriptV1.push_back({{91}, pos, -1, "", StepTypeV1::TRAVERSE});
+            scriptV1.push_back({{92}, pos, -1, "", StepTypeV1::HIGHLIGHT_2});    
+            scriptV1.push_back({{93}, pos, value, "", StepTypeV1::UPDATE});
+            scriptV1.push_back({{}, pos, -1, "", StepTypeV1::FINISH});
+        }
+        else
+            scriptV1.push_back({{}, pos - 1, -1, "", StepTypeV1::FINISH});
         isCalculatingHistoryV1 = true;
         firstTime = true;
     }

@@ -1,10 +1,4 @@
-build/
 .git/
 .vscode/
-vcpkg_installed/
-vcpkg/packages/
-vcpkg/downloads/
-vcpkg/buildtrees/
-
-!vcpkg/bootstrap-vcpkg.bat
-!vcpkg/bootstrap-vcpkg.sh
+Visualizer.exe
+imgui.ini

@@ -211,7 +211,7 @@ void initVisualization2(sf::RenderWindow& window) {
     ImGui::SameLine(90.0f);
     if (temp == false && (isStepByStep || checkFinishedV2()) && ImGui::Button("Random", ImVec2(100.0f, 30)))
     {
-        int n = rand() % 8;
+        int n = rand() % 8 + 1;
         std::string data = "";
         for(int i = 0; i < n; i++){
             int value = rand() % 100;
@@ -501,7 +501,8 @@ void updateVisualization2(sf::RenderWindow& window){
     }
 } 
 void getTopVisualization2(sf::RenderWindow& window){
-    ImGui::TextColored(title1Color, "Get the max element in the heap:");
+    if(isMaxHeap) ImGui::TextColored(title1Color, "Get the max element in the heap:");
+    else ImGui::TextColored(title1Color, "Get the min element in the heap:");
     ImGui::Spacing();
     if((isStepByStep || checkFinishedV2()) && ImGui::Button("Get", ImVec2(125.0f, 30)) && heapList.size() > 0) {
         scriptV2.clear();

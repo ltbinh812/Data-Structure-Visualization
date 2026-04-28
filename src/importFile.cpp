@@ -14,7 +14,7 @@ std::string openAndReadFile() {
     
     ofn.lpstrFilter = "Text Files\0*.txt\0All Files\0*.*\0";
     ofn.nFilterIndex = 1;
-    ofn.lpstrInitialDir = "..\\testcase";
+    ofn.lpstrInitialDir = "testcase";
     ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
     if (GetOpenFileNameA(&ofn) == TRUE) {

@@ -570,7 +570,7 @@ void drawVisualization2(sf::RenderWindow& window, std::vector<sf::Texture>& text
             if (ImGui::Selectable("Initialize", o == INITIALIZE)) { if(temp) o = INITIALIZE; }
             if (ImGui::Selectable("Insert(i,v)", o == ADD))    { if(temp) o = ADD;   }
             if (ImGui::Selectable("Get Top", o == GET_TOP))    { if(temp) o = GET_TOP; }
-            if (ImGui::Selectable("Update(u,v)", o == UPDATE))    { if(temp) o = UPDATE; }
+            if (ImGui::Selectable("Update(i,v)", o == UPDATE))    { if(temp) o = UPDATE; }
         ImGui::EndChild();
 
         ImGui::SameLine();
